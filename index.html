@@ -289,7 +289,7 @@ const unb64u = s => { s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4)
 async function api(body){
   let r;
   try { r = await fetch(CFG.API, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)}); }
-  catch(e){ const err = new Error("Sin conexión con el servidor. Revisá tu internet."); err.offline = true; throw err; }
+  catch(e){ const err = new Error("Sin conexión con el servidor. Revisá tu internet. (Detalle técnico: " + (e && e.message) + " · " + CFG.API + ")"); err.offline = true; throw err; }
   let d = {}; try { d = await r.json(); } catch(e){}
   if(!r.ok){ const err = new Error(d.error || "Error del servidor"); err.status = r.status; throw err; }
   return d;
