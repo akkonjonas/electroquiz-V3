@@ -282,7 +282,7 @@ const TITLES = [
 const SRV = !!(window.CFG && CFG.API);
 const SKEY = "electro_sess";
 let SESS = null;
-try { SESS = JSON.parse(localStorage.getItem(SKEY)); } catch(e){}
+try { SESS = JSON.parse(sessionStorage.getItem(SKEY)); localStorage.removeItem(SKEY); } catch(e){}
 const b64u = buf => { let s=""; new Uint8Array(buf).forEach(x=>s+=String.fromCharCode(x)); return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); };
 const unb64u = s => { s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4) s+="="; const b=atob(s), o=new Uint8Array(b.length); for(let i=0;i<b.length;i++) o[i]=b.charCodeAt(i); return o.buffer; };
 
@@ -294,7 +294,7 @@ async function api(body){
   if(!r.ok){ const err = new Error(d.error || "Error del servidor"); err.status = r.status; throw err; }
   return d;
 }
-function setSession(s){ SESS = s; try { if(s) localStorage.setItem(SKEY, JSON.stringify(s)); else localStorage.removeItem(SKEY); } catch(e){} }
+function setSession(s){ SESS = s; try { if(s) sessionStorage.setItem(SKEY, JSON.stringify(s)); else sessionStorage.removeItem(SKEY); } catch(e){} }
 const webauthnOK = () => !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
 
 /* --- unir el progreso del teléfono con el del servidor (nunca se pierde nada) --- */
@@ -337,10 +337,25 @@ async function pullAndMerge(){
 window.addEventListener("online", () => syncSoon());
 
 /* --- pantallas --- */
-let LMODE = "in";
-function screenLoginSrv(msg){
+let LMODE = "in", LFORM = false;
+const knownName = () => { try { return localStorage.getItem("electro_lastname"); } catch(e){ return null; } };
+function screenLoginSrv(msg, auto){
   setNav(null);
-  const ok = webauthnOK();
+  const ok = webauthnOK(), known = knownName();
+  const note = esc(msg || (ok ? "" : "Este navegador no permite huella digital. Abrí la app desde Chrome (Android) o Safari (iPhone), con la página en https."));
+  if(known && !LFORM && LMODE==="in"){
+    app.innerHTML = `
+    <div class="login">
+      <div class="bolt">⚡</div>
+      <h1>Electro <span style="color:var(--acc)">Quiz</span></h1>
+      <p>Hola, <b style="color:var(--txt)">${esc(known)}</b></p>
+      <button class="btn" id="go" onclick="doLoginSrv()">👆 Entrar con huella</button>
+      <div id="lmsg" class="note" style="color:var(--bad)">${note}</div>
+      <button class="link" onclick="LFORM=true;screenLoginSrv()">No soy ${esc(known)} · cambiar usuario o crear cuenta</button>
+    </div>`;
+    if(auto && ok) setTimeout(() => { if(document.getElementById("go")) doLoginSrv(); }, 300);
+    return;
+  }
   app.innerHTML = `
   <div class="login">
     <div class="bolt">⚡</div>
@@ -352,12 +367,11 @@ function screenLoginSrv(msg){
     </div>
     <input id="nm" class="in" maxlength="20" placeholder="Tu nombre" autocomplete="off">
     ${LMODE==="new" ? `<input id="cd" class="in" maxlength="12" placeholder="Código de activación" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:2px">
-      <p class="note" style="margin:0 0 10px">El código te lo da el profesor por WhatsApp. Se usa una sola vez, solo para activar tu cuenta. Después entrás con tu huella.</p>` : ""}
+      <p class="note" style="margin:0 0 10px">El código te lo da el profesor por WhatsApp. Se usa una sola vez, solo para activar tu cuenta. Después entrás solo con tu huella.</p>` : ""}
     <button class="btn" id="go" onclick="${LMODE==="in"?"doLoginSrv()":"doRegisterSrv()"}">${LMODE==="in"?"👆 Entrar con huella":"👆 Activar con huella"}</button>
-    <div id="lmsg" class="note" style="color:var(--bad)">${esc(msg || (ok ? "" : "Este navegador no permite huella digital. Abrí la app desde Chrome (Android) o Safari (iPhone), con la página en https."))}</div>
+    <div id="lmsg" class="note" style="color:var(--bad)">${note}</div>
+    ${known ? `<button class="link" onclick="LFORM=false;LMODE='in';screenLoginSrv()">‹ Volver a ${esc(known)}</button>` : ""}
   </div>`;
-  if(SESS && SESS.name) $("#nm").value = SESS.name;
-  else { try { const l = localStorage.getItem("electro_lastname"); if(l) $("#nm").value = l; } catch(e){} }
 }
 function lmsg(t, ok){ const m = $("#lmsg"); if(m){ m.textContent = t; m.style.color = ok ? "var(--acc)" : "var(--bad)"; } }
 function lbusy(b){ const g = $("#go"); if(g){ g.disabled = b; g.style.opacity = b ? .6 : 1; } }
@@ -369,6 +383,7 @@ function bioError(e){
 async function finishLogin(name, token){
   setSession({name, token});
   try { localStorage.setItem("electro_lastname", name); } catch(e){}
+  LFORM = false; LMODE = "in";
   try { await pullAndMerge(); } catch(e){ db.current = name; if(!db.players[name]) db.players[name] = newPlayer(); save(); }
   screenHome();
 }
@@ -390,7 +405,7 @@ async function doRegisterSrv(){
   } catch(e){ lbusy(false); lmsg(bioError(e)); }
 }
 async function doLoginSrv(){
-  const name = $("#nm").value.trim();
+  const name = $("#nm") ? $("#nm").value.trim() : (knownName() || "");
   if(!name){ lmsg("Escribí tu nombre."); return; }
   if(!webauthnOK()){ screenLoginSrv(); return; }
   lbusy(true); lmsg("Un momento…", true);
@@ -463,7 +478,7 @@ const needLogin = () => { if(!db.current || !db.players[db.current] || (SRV && !
 
 /* ============ PANTALLAS ============ */
 function screenLogin(){
-  if(SRV) return screenLoginSrv();
+  if(SRV) return screenLoginSrv(null, true);
   setNav(null);
   const names = Object.keys(db.players);
   app.innerHTML = `

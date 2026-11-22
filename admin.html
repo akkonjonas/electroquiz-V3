@@ -29,7 +29,7 @@ button.g,a.g{background:var(--card2);color:var(--txt);border:1px solid var(--lin
     <div id="out"></div>
   </div>
   <h2>Alumnos <span class="s" id="cu"></span></h2><div id="users"></div>
-  <h2>Códigos recientes</h2><div id="codes"></div>
+  <h2>Códigos entregados</h2><div id="codes"></div>
   <p class="s" style="margin-top:20px"><a class="g b" href="#" onclick="salir();return false">Cerrar panel</a></p>
 </div>
 <script>
@@ -53,7 +53,7 @@ function wa(code,name){
   return "https://wa.me/?text="+encodeURIComponent(t);
 }
 function mostrar(code,name){
-  $("out").innerHTML=`<div class="code">${esc(code)}</div><div class="act"><button onclick="navigator.clipboard.writeText('${esc(code)}');this.textContent='Copiado ✔'">Copiar</button><a class="b g" target="_blank" rel="noopener" href="${wa(code,name)}">Enviar por WhatsApp</a></div><p class="s">Guardalo ahora: por seguridad el sistema no vuelve a mostrar el código.</p>`;
+  $("out").innerHTML=`<div class="code">${esc(code)}</div><div class="act"><button onclick="navigator.clipboard.writeText('${esc(code)}');this.textContent='Copiado ✔'">Copiar</button><a class="b g" target="_blank" rel="noopener" href="${wa(code,name)}">Enviar por WhatsApp</a></div><p class="s">Este código queda guardado abajo, en «Códigos entregados», hasta que se use.</p>`;
 }
 async function nuevo(){
   try{const lab=$("lab").value.trim();const r=await call("admin_create_code",{label:lab});mostrar(r.code,lab);$("lab").value="";cargar();}catch(e){alert(e.message)}
@@ -73,8 +73,13 @@ async function cargar(){
   $("users").innerHTML=r.users.map(u=>`<div class="card"><div class="row"><b>${esc(u.name)}</b><span class="s">${u.pts} pts · ${u.st}★ · ${u.done} aprobados</span></div>
     <div class="s">Alta: ${fd(u.created_at)} · Último guardado: ${fd(u.updated_at)} · ${u.devices?u.devices+" dispositivo":"<span style='color:var(--acc)'>esperando código</span>"}</div>
     <div class="act"><button class="g" onclick="reiniciar('${u.id}','${esc(u.name).replace(/'/g,"")}')">Reiniciar / cambio de teléfono</button><button class="r" onclick="borrar('${u.id}','${esc(u.name).replace(/'/g,"")}')">Eliminar</button></div></div>`).join("")||'<p class="s">Todavía no hay alumnos.</p>';
-  $("codes").innerHTML=r.codes.map(c=>{const st=c.used_at?'<span class="ok">usado '+fd(c.used_at)+'</span>':(new Date(c.expires_at)<new Date()?'vencido':'sin usar');
-    return `<div class="card row"><span>${esc(c.label||"(sin nombre)")}</span><span class="s">${st}</span></div>`}).join("")||'<p class="s">Sin códigos.</p>';
+  $("codes").innerHTML=r.codes.map(c=>{
+    const vencido=new Date(c.expires_at)<new Date();
+    if(c.used_at) return `<div class="card"><div class="row"><span>${esc(c.label||"(sin nombre)")}</span><span class="s ok">usado${c.used_by_name?" por "+esc(c.used_by_name):""} · ${fd(c.used_at)}</span></div></div>`;
+    const nm=esc((c.label||"").replace(/^Reinicio de /,"")).replace(/'/g,"");
+    return `<div class="card"><div class="row"><span>${esc(c.label||"(sin nombre)")}</span><span class="s">${vencido?"vencido":"sin usar"}</span></div>
+      ${c.code?`<div class="code" style="font-size:24px">${esc(c.code)}</div><div class="act"><button class="g" onclick="navigator.clipboard.writeText('${esc(c.code)}');this.textContent='Copiado ✔'">Copiar</button><a class="b g" target="_blank" rel="noopener" href="${wa(c.code,nm)}">Enviar por WhatsApp</a></div>`:'<p class="s">Código anterior (no quedó guardado para mostrarlo).</p>'}</div>`;
+  }).join("")||'<p class="s">Sin códigos.</p>';
 }
 if(API&&KEY){$("key").value=KEY;entrar();}
 </script></body></html>
