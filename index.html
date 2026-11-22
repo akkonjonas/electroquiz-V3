@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Electro Quiz</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{
+  --bg:#0f1115;--card:#171a21;--card2:#1e222b;--line:#2a2f3a;--txt:#eef0f4;--mut:#8b93a3;
+  --acc:#f5b301;--acc2:#ffd25a;--ok:#2ecc71;--bad:#ff5d5d;--r:16px;
+}
+@media (prefers-color-scheme:light){
+  :root{--bg:#f5f6f8;--card:#ffffff;--card2:#f0f1f4;--line:#e0e3ea;--txt:#16181d;--mut:#6a7282;--acc:#e09f00;--acc2:#b87f00}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh;padding-bottom:84px}
+#app{max-width:560px;margin:0 auto;padding:18px 16px}
+h1,h2,h3,h4,p{margin:0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.brand{font-weight:800;letter-spacing:.3px;font-size:20px}
+.brand span{color:var(--acc)}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:13px;color:var(--mut);font:inherit;font-size:13px}
+.chip b{color:var(--txt)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.hello{margin-bottom:16px}
+.hello h2{font-size:22px}
+.hello p{color:var(--mut);font-size:14px;margin-top:4px}
+.hello p b{color:var(--acc)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-size:20px;color:var(--acc)}
+.stat small{color:var(--mut);font-size:12px}
+.sec{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin:14px 2px 10px}
+.lv{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:10px;color:inherit;font:inherit;cursor:pointer}
+.lv:active{transform:scale(.99)}
+.lv.lock{opacity:.45;cursor:not-allowed}
+.lv.hl{border-color:var(--acc)}
+.ico{width:46px;height:46px;border-radius:13px;background:var(--card2);display:grid;place-items:center;font-size:22px;flex:none}
+.lv .t{flex:1;min-width:0}
+.lv h3{font-size:16px}
+.lv p{font-size:13px;color:var(--mut);margin-top:3px}
+.stars{font-size:15px;letter-spacing:2px;color:var(--acc);white-space:nowrap}
+.stars i{color:var(--line);font-style:normal}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;background:var(--acc);color:#1a1300}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:var(--card);color:var(--txt);border:1px solid var(--line)}
+.btn+.btn{margin-top:10px}
+input.in{width:100%;padding:15px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:17px;margin:14px 0;outline:none}
+input.in:focus{border-color:var(--acc)}
+.login{padding-top:8vh;text-align:center}
+.login .bolt{font-size:54px}
+.login h1{font-size:30px;margin:8px 0 6px}
+.login p{color:var(--mut);font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.chips button{background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin:6px 0 16px}
+.bar>div{height:100%;background:var(--acc);border-radius:99px;transition:width .3s}
+.qhead{display:flex;justify-content:space-between;color:var(--mut);font-size:13px;gap:10px}
+.q{font-size:20px;font-weight:700;line-height:1.35;margin:6px 0 18px}
+.opt{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);color:var(--txt);border-radius:14px;padding:14px 15px;margin-bottom:10px;font:inherit;font-size:16px;line-height:1.35;cursor:pointer}
+.opt:active{transform:scale(.99)}
+.opt.ok{border-color:var(--ok);background:rgba(46,204,113,.12)}
+.opt.bad{border-color:var(--bad);background:rgba(255,93,93,.12)}
+.opt.dim{opacity:.55}
+.fb{border-radius:14px;padding:15px;margin:6px 0 14px;font-size:15px;line-height:1.5;border:1px solid var(--line);background:var(--card)}
+.fb.ok{border-color:var(--ok)}
+.fb.bad{border-color:var(--bad)}
+.fb h4{margin:0 0 8px;font-size:16px}
+.fb .lbl{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:10px 0 3px}
+.res{text-align:center;padding-top:4vh}
+.res .big{font-size:64px;margin:6px 0}
+.res h2{font-size:26px}
+.res .pts{font-size:42px;font-weight:800;color:var(--acc);margin:8px 0}
+.res p{color:var(--mut)}
+.newb{margin:18px 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.badge{background:var(--card);border:1px solid var(--acc);border-radius:14px;padding:10px 12px;font-size:14px}
+table{width:100%;border-collapse:collapse}
+td,th{padding:12px 8px;text-align:left;font-size:15px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+td.n,th.n{text-align:right}
+td small{display:block;color:var(--mut);font-size:12px}
+tr.me td{color:var(--acc);font-weight:700}
+.pos{width:34px}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bd{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;text-align:center}
+.bd .e{font-size:30px}
+.bd h4{margin:6px 0 3px;font-size:14px}
+.bd p{font-size:12px;color:var(--mut)}
+.bd.off{opacity:.4;filter:grayscale(1)}
+.bd.on{border-color:var(--acc)}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+nav div{display:flex;max-width:560px;width:100%}
+nav button{flex:1;background:none;border:0;color:var(--mut);font:inherit;font-size:12px;padding:6px;cursor:pointer}
+nav button span{display:block;font-size:20px}
+nav button.on{color:var(--acc)}
+.note{font-size:12px;color:var(--mut);text-align:center;margin-top:14px;line-height:1.5}
+.link{background:none;border:0;color:var(--mut);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:6px}
+.err{padding:30px 10px;text-align:center;color:var(--bad)}
+nav button{font-size:10px}
+nav button span{font-size:18px}
+.arr{color:var(--mut);font-size:22px;flex:none}
+.tag{display:inline-block;font-size:10px;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:0 5px;margin-left:4px;white-space:nowrap}
+.stat{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line)}
+.mh{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.mh .ico{width:48px;height:48px;border-radius:14px;background:var(--card2);display:grid;place-items:center;font-size:24px;flex:none}
+.mh h2{font-size:17px;line-height:1.25}.mh p{font-size:13px;color:var(--mut)}
+.steps{padding-left:22px;margin:0 0 14px;font-size:14px;line-height:1.55}
+.steps li{margin-bottom:8px}
+.selfq,.keys,.chk{list-style:none;padding:0;margin:0 0 14px}
+.selfq li,.keys li,.chk li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:14px;line-height:1.5}
+.selfq li:before{content:"❓ "}
+.nlist li:before{content:"• "}
+.keys li:before{content:"⭐ "}
+.chk li:before{content:"☐ "}
+.err2 li:before{content:"⚠️ "}
+.rs{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:12px}
+.rs h3{font-size:15px;color:var(--acc);margin-bottom:8px}
+.rs ul,.rs-l{list-style:none;padding:0;margin:0}
+.rs li,.rs-l li{font-size:14px;line-height:1.55;padding:7px 0;border-top:1px solid var(--line)}
+.rs li:first-child,.rs-l li:first-child{border-top:0}
+li.k{border-left:3px solid var(--line);padding-left:10px!important}
+li.k .kt{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;border-radius:5px;padding:1px 6px;margin-right:6px;background:var(--card2)}
+li.k.f{border-left-color:#7aa2ff}li.k.f .kt{color:#7aa2ff}
+li.k.v{border-left-color:var(--ok)}li.k.v .kt{color:var(--ok)}
+li.k.r{border-left-color:var(--acc)}li.k.r .kt{color:var(--acc)}
+li.k.o{border-left-color:var(--bad);background:rgba(255,93,93,.07)}li.k.o .kt{color:var(--bad)}
+li.k.n{border-left-color:#c58bff}li.k.n .kt{color:#c58bff}
+.fm{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;font-size:14px;line-height:1.5}
+.fm h4{font-size:14px}.fm .eq{font-size:16px;font-weight:700;color:var(--acc);margin:4px 0;word-break:break-word}
+.fm .ex{color:var(--mut);margin-top:4px}
+.tw{margin-bottom:14px}.tw h4{font-size:13px;margin-bottom:6px}
+.scr{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.dt{border-collapse:collapse;font-size:12.5px;width:100%}
+.dt th,.dt td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.dt th{background:var(--card2);color:var(--acc);white-space:nowrap}
+.pstep{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.pstep summary{list-style:none;cursor:pointer;display:flex;gap:10px;align-items:center;padding:12px 14px;font-weight:600;font-size:14.5px;line-height:1.3}
+.pstep summary::-webkit-details-marker{display:none}
+.pn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#1a1300;display:grid;place-items:center;font-size:13px;font-weight:800}
+.pstep[open] summary{border-bottom:1px solid var(--line)}
+.pb{padding:12px 14px;font-size:14px;line-height:1.55}
+.pb h5{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin:12px 0 6px}
+.pb p{margin-bottom:6px}
+.resu{background:rgba(46,204,113,.10);border:1px solid var(--ok);border-radius:10px;padding:8px 10px;margin-top:10px;font-size:13.5px}
+.refs{margin-top:8px}.rc{background:var(--card2);color:var(--mut);border:1px solid var(--line);border-radius:999px;font:inherit;font-size:12px;padding:4px 10px;margin:4px 6px 0 0;cursor:pointer}
+.nrm{margin-bottom:12px}
+
+.pdfbar{display:flex;gap:10px;align-items:center;margin:0 0 10px;position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0}
+.pdfbar button,.pdfbar a{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;font:inherit;font-size:16px;padding:6px 14px;text-decoration:none;cursor:pointer}
+.pdfbar span{min-width:46px;text-align:center;color:var(--mut)}
+.pdfbar a{margin-left:auto;font-size:13px}
+.pdfv{overflow-x:auto;border-radius:10px}
+.pdfv img{display:block;max-width:none;margin:0 0 10px;background:#fff;border-radius:6px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="nav" style="display:none"><div>
+  <button id="n-home" onclick="goHome()"><span>🏠</span>Inicio</button>
+  <button id="n-mod" onclick="goMods()"><span>📚</span>Módulos</button>
+  <button id="n-lev" onclick="goLevels()"><span>🪜</span>Niveles</button>
+  <button id="n-uni" onclick="goUni()"><span>📐</span>Unifilar</button>
+  <button id="n-proj" onclick="goProj()"><span>📋</span>Proyecto</button>
+  <button id="n-norm" onclick="goNormas()"><span>⚖️</span>Normas</button>
+</div></nav>
+<script>window.CFG={API:""};/* Pegá acá la dirección de tu función de Supabase (ver LEEME). Si queda vacío, la app funciona sin cuentas. */</script>
+<script src="preguntas.js"></script>
+<script>
+/* ============ CONFIGURACIÓN ============ */
+const KEY = "electro_quiz_v2", OLDKEY = "electro_quiz_v1";
+const PASS = 70;          // % para aprobar
+const FINAL_Q = 30;       // preguntas del examen final
+const REV_Q = 10;         // preguntas por tanda de repaso
+const QUICK_Q = 10;       // partida rápida dentro de un módulo
+
+/* Niveles en el orden de la ruta de estudio (numeración de los PDF). El id es fijo (guarda el progreso). */
+const LEVELS = [
+  {id:1,  pdf:"PDF 01", icon:"⚖️", name:"Leyes y seguridad",        desc:"Ley 10.281, ERSeP, categorías y APTO"},
+  {id:2,  pdf:"PDF 02", icon:"⚡", name:"Electricidad y corriente", desc:"CC, CA, trifásica y colores"},
+  {id:3,  pdf:"PDF 03", icon:"🧱", name:"Materiales y aislantes",   desc:"Aislantes, conductores y cables IRAM"},
+  {id:4,  pdf:"PDF 04", icon:"🔢", name:"Matemática y Ley de Ohm",  desc:"Porcentajes, redondeo y V = I × R"},
+  {id:5,  pdf:"PDF 05", icon:"💡", name:"Potencia y energía",       desc:"P = V × I, kWh y potencia aparente"},
+  {id:6,  pdf:"PDF 06-07", icon:"⚙️", name:"Potencia aplicada",     desc:"Hp, cos φ, trifásica y planillas"},
+  {id:14, pdf:"PDF 08", icon:"📐", name:"Planos y proyecto",        desc:"IRAM, Sla, GE, unifilar y DPMS"},
+  {id:8,  pdf:"PDF 10-11", icon:"🏠", name:"Red y acometida",       desc:"RDD, DPLA, LAD, pilar y medidor"},
+  {id:9,  pdf:"PDF 11-12", icon:"🗃️", name:"TPA y circuito seccional", desc:"ITM, zanja, cables y corrientes"},
+  {id:7,  pdf:"PDF 12", icon:"📉", name:"Caída de tensión",         desc:"Resistencia, sección y límites 3% / 5%"},
+  {id:10, pdf:"PDF 13", icon:"🛡️", name:"TPU y protecciones",       desc:"ITM, ID, PIA, curvas y puente peine"},
+  {id:11, pdf:"PDF 13", icon:"🌍", name:"Puesta a tierra",          desc:"Sistema TT, jabalina y choques"},
+  {id:12, pdf:"PDF 14", icon:"🔩", name:"Canalizaciones",           desc:"Cañerías, curvas, soportes y distancias"},
+  {id:13, pdf:"PDF 14-15", icon:"🔌", name:"Cables y bandejas",     desc:"Cables permitidos y canalización subterránea"},
+  {id:15, pdf:"PDF 19", icon:"🔋", name:"Vehículos eléctricos",     desc:"Instalación de carga, modos, conectores y protecciones"},
+  {id:16, pdf:"PDF 20", icon:"🧩", name:"Unifilares: práctica",     desc:"Armar y leer unifilares paso a paso"},
+  {id:17, pdf:"PDF 21-22", icon:"📝", name:"Proyectos eléctricos",  desc:"Primer y segundo proyecto: cálculo y planillas"}
+].filter(L => typeof Q !== "undefined" && Q[L.id]);
+const LV = id => LEVELS.find(l => l.id === id);
+const lvPos = id => LEVELS.findIndex(l => l.id === id) + 1;
+
+/* Módulos = un PDF del curso cada uno, ordenados por la numeración */
+const MODS = [
+  {g:"Base teórica · PDF 01 a 03"},
+  {id:"M01",  n:"01",     icon:"⚖️", name:"Leyes y reglamentaciones",        desc:"Marco legal, ERSeP, categorías y seguridad"},
+  {id:"M02",  n:"02",     icon:"⚡", name:"Introducción a la electricidad",  desc:"Corriente, tensión, CC, CA y trifásica"},
+  {id:"M03",  n:"03",     icon:"🧱", name:"Aislantes, conductores y semiconductores", desc:"Materiales, resistividad y cables"},
+  {g:"Cálculos eléctricos · PDF 04 a 07 BIS"},
+  {id:"M04",  n:"04",     icon:"🔢", name:"Cálculos básicos y Ley de Ohm",   desc:"Porcentajes, redondeo y V = I × R"},
+  {id:"M05",  n:"05",     icon:"💡", name:"Potencia eléctrica",              desc:"P = V × I, energía y kWh"},
+  {id:"M06",  n:"06",     icon:"⚙️", name:"Profundizando en potencia",       desc:"Potencia aparente, cos φ y Hp"},
+  {id:"M07",  n:"07",     icon:"🧮", name:"Profundizando en potencia (parte 2)", desc:"Trifásica y planillas de consumo"},
+  {id:"M07B", n:"07 BIS", icon:"✅", name:"Resoluciones de potencia",        desc:"Ejercicios resueltos paso a paso"},
+  {g:"Representación y ejercitación · PDF 08"},
+  {id:"M08A", n:"08",     icon:"📏", name:"Representación gráfica y Sla",    desc:"Planos, símbolos y superficie límite"},
+  {id:"M08B", n:"08",     icon:"🏋️", name:"Ejercitación integral",           desc:"Reafirmar conocimientos con cálculos"},
+  {g:"Instalación domiciliaria · PDF 10 a 13"},
+  {id:"M10",  n:"10",     icon:"🏠", name:"Tendido: RDD, medidor, TPA y TPU", desc:"Cómo se inicia la instalación"},
+  {id:"M11",  n:"11",     icon:"🗃️", name:"Detalle de acometidas",           desc:"Pilar, caños, cajas y componentes"},
+  {id:"M12A", n:"12",     icon:"📉", name:"Circuito seccional y caída de tensión", desc:"Cables, protecciones y límites 3% / 5%"},
+  {id:"M12B", n:"12",     icon:"✏️", name:"Práctica de caída de tensión",    desc:"Resistencia y caída de tensión"},
+  {id:"M13",  n:"13",     icon:"🛡️", name:"TPU",                             desc:"Tablero, ID, PIA y puesta a tierra"},
+  {g:"Canalizaciones y circuitos · PDF 14 y 15"},
+  {id:"M14",  n:"14",     icon:"🔩", name:"Canalizaciones eléctricas",       desc:"Caños, cajas, curvas y ocupación"},
+  {id:"M15",  n:"15",     icon:"📋", name:"Bases de reglamentación de circuitos", desc:"Grado de electrificación y circuitos"},
+  {g:"Accionamientos, unifilares y vehículos eléctricos · PDF 16 a 19"},
+  {id:"M16",  n:"16-17",  icon:"⏱️", name:"Medición y accionamiento",        desc:"Relojes, contactores y elementos de maniobra"},
+  {id:"M18",  n:"18",     icon:"📐", name:"Topográficos y unifilares",       desc:"Esquemas monofásicos y cálculo"},
+  {id:"M19",  n:"19",     icon:"🔋", name:"Instalación para vehículos eléctricos", desc:"Carga, modos, conectores y protecciones"},
+  {g:"Práctica y proyectos · PDF 20 a 22"},
+  {id:"M20",  n:"20",     icon:"🧩", name:"Unifilares: práctica",            desc:"Armar y leer unifilares"},
+  {id:"M21",  n:"21",     icon:"📝", name:"Primer proyecto",                 desc:"Proyecto eléctrico paso a paso"},
+  {id:"M22",  n:"22",     icon:"📘", name:"Segundo proyecto",                desc:"Proyecto eléctrico paso a paso"}
+];
+const MODQ = (typeof MOD !== "undefined") ? MOD : {};
+const STUDYD = (typeof STUDY !== "undefined") ? STUDY : {};
+const MOD_ITEMS = MODS.filter(m => m.id && MODQ[m.id]);
+const FINAL = {id:"F", icon:"🏆", name:"Examen final", desc:`${FINAL_Q} preguntas al azar de todo el curso`};
+
+const BADGES = [
+  {id:"first",   e:"🌱", n:"Primer paso",        d:"Completá tu primer nivel o módulo"},
+  {id:"streak5", e:"🔥", n:"En racha",           d:"5 correctas seguidas"},
+  {id:"streak10",e:"☄️", n:"Racha de acero",     d:"10 correctas seguidas"},
+  {id:"perfect", e:"💯", n:"Nivel perfecto",     d:"100% en un nivel"},
+  {id:"perfect3",e:"🏅", n:"Triple perfecto",    d:"100% en 3 niveles"},
+  {id:"pts500",  e:"🔋", n:"500 puntos",         d:"Sumá 500 puntos"},
+  {id:"pts1000", e:"💡", n:"1000 puntos",        d:"Sumá 1000 puntos"},
+  {id:"pts1500", e:"🌟", n:"1500 puntos",        d:"Sumá 1500 puntos"},
+  {id:"pts3000", e:"🚀", n:"3000 puntos",        d:"Sumá 3000 puntos"},
+  {id:"lv3",     e:"🪜", n:"Aprendiz avanzado",  d:"Aprobá 3 niveles"},
+  {id:"lv7",     e:"🧰", n:"Mitad del camino",   d:"Aprobá 8 niveles"},
+  {id:"calc",    e:"🧮", n:"Calculista",         d:"90% o más en los niveles de Matemática, Potencia, Potencia aplicada y Caída de tensión"},
+  {id:"stars30", e:"🌠", n:"Cielo estrellado",   d:"Juntá 30 estrellas"},
+  {id:"fixer",   e:"🛠️", n:"Cazador de errores", d:"Corregí 10 errores en el repaso"},
+  {id:"all",     e:"🎓", n:"Teoría completa",    d:"Aprobá todos los niveles"},
+  {id:"final",   e:"🏆", n:"Electricista del curso", d:"Aprobá el examen final"},
+  {id:"mod1",    e:"📚", n:"Estudioso",          d:"Aprobá un módulo del curso"},
+  {id:"mod10",   e:"🗂️", n:"Carpeta al día",      d:"Aprobá 10 módulos"},
+  {id:"modperf", e:"🎯", n:"Módulo perfecto",    d:"100% en un módulo"},
+  {id:"modall",  e:"🧠", n:"Curso completo",     d:"Aprobá todos los módulos"},
+  {id:"read5",   e:"📖", n:"Lector",             d:"Marcá 5 módulos como estudiados"},
+  {id:"readall", e:"🧑‍🎓", n:"Resúmenes al día",   d:"Marcá todos los módulos como estudiados"},
+  {id:"uni1",    e:"📐", n:"Tablerista",         d:"Aprobá un reto de Unifilar"},
+  {id:"uniall",  e:"⚡", n:"Maestro del unifilar", d:"Aprobá los 4 retos de Unifilar"}
+];
+const TITLES = [
+  {min:0,    t:"Aprendiz"},
+  {min:200,  t:"Ayudante"},
+  {min:600,  t:"Medio oficial"},
+  {min:1100, t:"Oficial"},
+  {min:1700, t:"Instalador"},
+  {min:2200, t:"Maestro instalador"},
+  {min:3500, t:"Instalador experto"},
+  {min:5000, t:"Categoría III"},
+  {min:7000, t:"Leyenda del tablero"}
+];
+
+/* ---------- CUENTAS CON HUELLA + GUARDADO EN EL SERVIDOR ---------- */
+const SRV = !!(window.CFG && CFG.API);
+const SKEY = "electro_sess";
+let SESS = null;
+try { SESS = JSON.parse(localStorage.getItem(SKEY)); } catch(e){}
+const b64u = buf => { let s=""; new Uint8Array(buf).forEach(x=>s+=String.fromCharCode(x)); return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); };
+const unb64u = s => { s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4) s+="="; const b=atob(s), o=new Uint8Array(b.length); for(let i=0;i<b.length;i++) o[i]=b.charCodeAt(i); return o.buffer; };
+
+async function api(body){
+  let r;
+  try { r = await fetch(CFG.API, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body)}); }
+  catch(e){ const err = new Error("Sin conexión con el servidor. Revisá tu internet."); err.offline = true; throw err; }
+  let d = {}; try { d = await r.json(); } catch(e){}
+  if(!r.ok){ const err = new Error(d.error || "Error del servidor"); err.status = r.status; throw err; }
+  return d;
+}
+function setSession(s){ SESS = s; try { if(s) localStorage.setItem(SKEY, JSON.stringify(s)); else localStorage.removeItem(SKEY); } catch(e){} }
+const webauthnOK = () => !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+
+/* --- unir el progreso del teléfono con el del servidor (nunca se pierde nada) --- */
+function mergeProgress(a, b){
+  a = fix(a || newPlayer()); b = fix(b || newPlayer());
+  const newer = (a.ts||0) >= (b.ts||0) ? a : b;
+  const out = newPlayer();
+  const keys = new Set([...Object.keys(a.levels), ...Object.keys(b.levels)]);
+  keys.forEach(k => {
+    const x = a.levels[k] || {score:0,pct:0,stars:0}, y = b.levels[k] || {score:0,pct:0,stars:0};
+    out.levels[k] = {score:Math.max(x.score,y.score), pct:Math.max(x.pct,y.pct), stars:Math.max(x.stars,y.stars)};
+  });
+  out.badges = [...new Set([...a.badges, ...b.badges])];
+  out.bestStreak = Math.max(a.bestStreak, b.bestStreak);
+  out.fixed = Math.max(a.fixed, b.fixed);
+  out.wrong = newer.wrong.slice();
+  out.studied = Object.assign({}, a.studied, b.studied, newer.studied);
+  out.ts = Math.max(a.ts||0, b.ts||0);
+  return out;
+}
+let syncT = null, syncBusy = false, syncAgain = false;
+function syncSoon(){ if(!SRV || !SESS) return; clearTimeout(syncT); syncT = setTimeout(syncNow, 1500); }
+async function syncNow(){
+  if(!SRV || !SESS || !db.current) return;
+  if(syncBusy){ syncAgain = true; return; }
+  syncBusy = true;
+  try { await api({action:"save", token:SESS.token, data:fix(db.players[db.current])}); }
+  catch(e){ if(e.status===401){ setSession(null); } }
+  syncBusy = false;
+  if(syncAgain){ syncAgain = false; syncSoon(); }
+}
+async function pullAndMerge(){
+  if(!SRV || !SESS) return;
+  const r = await api({action:"load", token:SESS.token});
+  const local = db.players[SESS.name];
+  const merged = mergeProgress(local, r.data);
+  db.players[SESS.name] = merged; db.current = SESS.name; save();
+  await api({action:"save", token:SESS.token, data:merged});
+}
+window.addEventListener("online", () => syncSoon());
+
+/* --- pantallas --- */
+let LMODE = "in";
+function screenLoginSrv(msg){
+  setNav(null);
+  const ok = webauthnOK();
+  app.innerHTML = `
+  <div class="login">
+    <div class="bolt">⚡</div>
+    <h1>Electro <span style="color:var(--acc)">Quiz</span></h1>
+    <p>Curso de Electricidad Domiciliaria y Pequeños Locales Comerciales</p>
+    <div class="seg" style="width:100%">
+      <button class="${LMODE==="in"?"on":""}" onclick="LMODE='in';screenLoginSrv()">Entrar</button>
+      <button class="${LMODE==="new"?"on":""}" onclick="LMODE='new';screenLoginSrv()">Crear cuenta</button>
+    </div>
+    <input id="nm" class="in" maxlength="20" placeholder="Tu nombre" autocomplete="off">
+    ${LMODE==="new" ? `<input id="cd" class="in" maxlength="12" placeholder="Código de activación" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:2px">
+      <p class="note" style="margin:0 0 10px">El código te lo da el profesor por WhatsApp. Se usa una sola vez, solo para activar tu cuenta. Después entrás con tu huella.</p>` : ""}
+    <button class="btn" id="go" onclick="${LMODE==="in"?"doLoginSrv()":"doRegisterSrv()"}">${LMODE==="in"?"👆 Entrar con huella":"👆 Activar con huella"}</button>
+    <div id="lmsg" class="note" style="color:var(--bad)">${esc(msg || (ok ? "" : "Este navegador no permite huella digital. Abrí la app desde Chrome (Android) o Safari (iPhone), con la página en https."))}</div>
+  </div>`;
+  if(SESS && SESS.name) $("#nm").value = SESS.name;
+  else { try { const l = localStorage.getItem("electro_lastname"); if(l) $("#nm").value = l; } catch(e){} }
+}
+function lmsg(t, ok){ const m = $("#lmsg"); if(m){ m.textContent = t; m.style.color = ok ? "var(--acc)" : "var(--bad)"; } }
+function lbusy(b){ const g = $("#go"); if(g){ g.disabled = b; g.style.opacity = b ? .6 : 1; } }
+function bioError(e){
+  if(e && e.name === "NotAllowedError") return "Se canceló o falló la verificación de huella. Probá de nuevo.";
+  if(e && e.name === "InvalidStateError") return "Ya hay una huella registrada para esta cuenta en este teléfono.";
+  return (e && e.message) || "Error";
+}
+async function finishLogin(name, token){
+  setSession({name, token});
+  try { localStorage.setItem("electro_lastname", name); } catch(e){}
+  try { await pullAndMerge(); } catch(e){ db.current = name; if(!db.players[name]) db.players[name] = newPlayer(); save(); }
+  screenHome();
+}
+async function doRegisterSrv(){
+  const name = $("#nm").value.trim(), code = $("#cd").value.trim();
+  if(!name || !code){ lmsg("Escribí tu nombre y el código."); return; }
+  if(!webauthnOK()){ screenLoginSrv(); return; }
+  lbusy(true); lmsg("Verificando código…", true);
+  try {
+    const b = await api({action:"reg_begin", name, code});
+    const o = b.options;
+    lmsg("Apoyá tu dedo en el sensor…", true);
+    const cred = await navigator.credentials.create({publicKey:{
+      challenge:unb64u(o.challenge), rp:o.rp, user:{id:unb64u(o.user.id), name:o.user.name, displayName:o.user.displayName},
+      pubKeyCredParams:o.pubKeyCredParams, authenticatorSelection:o.authenticatorSelection, attestation:o.attestation, timeout:o.timeout}});
+    const f = await api({action:"reg_finish", cid:b.cid, credential:{id:cred.id, rawId:b64u(cred.rawId), type:cred.type,
+      response:{clientDataJSON:b64u(cred.response.clientDataJSON), attestationObject:b64u(cred.response.attestationObject)}}});
+    await finishLogin(f.name, f.token);
+  } catch(e){ lbusy(false); lmsg(bioError(e)); }
+}
+async function doLoginSrv(){
+  const name = $("#nm").value.trim();
+  if(!name){ lmsg("Escribí tu nombre."); return; }
+  if(!webauthnOK()){ screenLoginSrv(); return; }
+  lbusy(true); lmsg("Un momento…", true);
+  try {
+    const b = await api({action:"login_begin", name});
+    const o = b.options;
+    lmsg("Apoyá tu dedo en el sensor…", true);
+    const cred = await navigator.credentials.get({publicKey:{
+      challenge:unb64u(o.challenge), rpId:o.rpId, timeout:o.timeout, userVerification:o.userVerification,
+      allowCredentials:o.allowCredentials.map(c=>({type:c.type, id:unb64u(c.id), transports:c.transports}))}});
+    const f = await api({action:"login_finish", cid:b.cid, credential:{id:cred.id, rawId:b64u(cred.rawId), type:cred.type,
+      response:{clientDataJSON:b64u(cred.response.clientDataJSON), authenticatorData:b64u(cred.response.authenticatorData), signature:b64u(cred.response.signature),
+        userHandle:cred.response.userHandle ? b64u(cred.response.userHandle) : null}}});
+    await finishLogin(f.name, f.token);
+  } catch(e){ lbusy(false); lmsg(bioError(e)); }
+}
+async function logoutSrv(){
+  const t = SESS && SESS.token;
+  await syncNow();
+  if(t) api({action:"logout", token:t}).catch(()=>{});
+  setSession(null); db.current = null; save(); screenLoginSrv();
+}
+async function remoteRanking(){
+  if(!SRV || !SESS) return null;
+  try { return (await api({action:"ranking", token:SESS.token})).ranking; } catch(e){ return null; }
+}
+
+/* ============ ESTADO ============ */
+const $ = s => document.querySelector(s);
+const app = $("#app");
+let S = null;
+
+if (typeof Q === "undefined") {
+  app.innerHTML = '<div class="err"><h2>No se pudo cargar preguntas.js</h2><p>Revisá que el archivo exista en la misma carpeta que index.html y que no tenga errores de escritura.</p></div>';
+  throw new Error("Falta preguntas.js");
+}
+const ALL = [];
+Object.keys(Q).forEach(k => Q[k].forEach(a => ALL.push({lv:+k, a})));
+const POOL = ALL.slice();
+Object.keys(MODQ).forEach(k => MODQ[k].forEach(a => POOL.push({lv:k, a})));
+
+function newPlayer(){ return {levels:{}, badges:[], bestStreak:0, wrong:[], fixed:0, studied:{}}; }
+function load(){
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.players) return d; } catch(e){}
+  const fresh = {players:{}, current:null};
+  try { const o = JSON.parse(localStorage.getItem(OLDKEY)); if (o && o.players) Object.keys(o.players).forEach(n => fresh.players[n] = newPlayer()); } catch(e){}
+  return fresh;
+}
+let db = load();
+function save(){ try { if(db.current && db.players[db.current]) db.players[db.current].ts = Date.now(); localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){} if(SRV) syncSoon(); }
+function fix(p){ p.levels = p.levels||{}; p.badges = p.badges||[]; p.wrong = p.wrong||[]; p.fixed = p.fixed||0; p.bestStreak = p.bestStreak||0; p.studied = p.studied||{}; return p; }
+const me = () => fix(db.players[db.current]);
+const total = p => Object.values(p.levels).reduce((a,l)=>a+l.score,0);
+const starsTot = p => Object.values(p.levels).reduce((a,l)=>a+l.stars,0);
+const doneCount = p => LEVELS.filter(l => p.levels[l.id] && p.levels[l.id].pct >= PASS).length;
+const modDone = p => MOD_ITEMS.filter(m => p.levels[m.id] && p.levels[m.id].pct >= PASS).length;
+const titleFor = pts => TITLES.filter(x => pts >= x.min).pop().t;
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const starsHTML = n => "★".repeat(n) + "<i>" + "★".repeat(3-n) + "</i>";
+function ranking(){
+  return Object.entries(db.players).map(([n,p])=>{ fix(p); return {n, pts:total(p), st:starsTot(p), done:doneCount(p)+modDone(p)}; })
+    .sort((a,b)=>b.pts-a.pts || b.st-a.st || a.n.localeCompare(b.n));
+}
+function setNav(id){
+  $("#nav").style.display = id ? "block" : "none";
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.id === "n-"+id));
+}
+const needLogin = () => { if(!db.current || !db.players[db.current] || (SRV && !SESS)){ screenLogin(); return true; } return false; };
+
+/* ============ PANTALLAS ============ */
+function screenLogin(){
+  if(SRV) return screenLoginSrv();
+  setNav(null);
+  const names = Object.keys(db.players);
+  app.innerHTML = `
+  <div class="login">
+    <div class="bolt">⚡</div>
+    <h1>Electro <span style="color:var(--acc)">Quiz</span></h1>
+    <p>Curso de Electricidad Domiciliaria y Pequeños Locales Comerciales</p>
+    <input id="nm" class="in" maxlength="20" placeholder="Escribí tu nombre" autocomplete="off">
+    <button class="btn" onclick="doLogin()">Empezar</button>
+    ${names.length ? `<div class="chips">${names.map((n,i)=>`<button onclick="pickPlayer(${i})">${esc(n)}</button>`).join("")}</div>
+    <p class="note">Tocá un nombre para continuar con tu progreso.</p>` : ""}
+  </div>`;
+  $("#nm").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
+}
+function doLogin(){
+  const v = $("#nm").value.trim().slice(0,20);
+  if(!v){ $("#nm").focus(); return; }
+  const key = Object.keys(db.players).find(n=>n.toLowerCase()===v.toLowerCase()) || v;
+  if(!db.players[key]) db.players[key] = newPlayer();
+  db.current = key; save(); screenHome();
+}
+function pickPlayer(i){ db.current = Object.keys(db.players)[i]; save(); screenHome(); }
+function logout(){ if(SRV) return logoutSrv(); db.current=null; save(); screenLogin(); }
+const goHome = () => screenHome(), goMods = () => screenMods(), goLevels = () => screenLevels(),
+      goRank = () => screenRank(), goBadges = () => screenBadges(), goProj = () => screenProyecto(), goNormas = () => screenNormas();
+
+function hubCard(ico, title, sub, act, hl){
+  return `<button class="lv ${hl?"hl":""}" onclick="${act}"><div class="ico">${ico}</div><div class="t"><h3>${title}</h3><p>${sub}</p></div><div class="arr">›</div></button>`;
+}
+
+/* ---------- INICIO: la ruta de estudio en el orden pedido ---------- */
+function screenHome(){
+  if(needLogin()) return;
+  setNav("home");
+  const p = me(), pts = total(p);
+  const pos = ranking().findIndex(r=>r.n===db.current)+1;
+  const dl = doneCount(p), dm = modDone(p);
+  const nw = p.wrong.filter(t => POOL.some(x=>x.a[0]===t)).length;
+  const fin = p.levels.F;
+  const read = Object.keys(p.studied).filter(k=>p.studied[k]).length;
+  app.innerHTML = `
+  <div class="top"><div class="brand">Electro <span>Quiz</span></div>
+    <button class="chip" onclick="logout()" style="cursor:pointer">👤 <b>${esc(db.current)}</b></button></div>
+  <div class="hello"><h2>Hola, ${esc(db.current)}</h2><p>Rango: <b>${titleFor(pts)}</b> · Todo está abierto: elegí por dónde seguir. Se aprueba con ${PASS}% o más.</p></div>
+  <div class="stats">
+    <button class="stat" onclick="goBadges()"><b>${pts}</b><small>Puntos</small></button>
+    <button class="stat" onclick="goRank()"><b>#${pos}</b><small>Ranking</small></button>
+    <button class="stat" onclick="goBadges()"><b>${p.badges.length}</b><small>Premios</small></button>
+  </div>
+  ${nw ? hubCard("🛠️","Repasar errores",`${nw} pregunta${nw===1?"":"s"} para reforzar`,"startSession('rev',0)",true) : ""}
+  <div class="sec">Ruta de estudio</div>
+  ${hubCard("📚","1 · Módulos de estudio",`Guía + resumen + juegos · ${dm}/${MOD_ITEMS.length} aprobados · ${read} estudiados`,"goMods()")}
+  ${hubCard("🪜","2 · Niveles",`Desafíos por tema · ${dl}/${LEVELS.length} aprobados`,"goLevels()")}
+  ${hubCard("📐","3 · Unifilar y tablero","Guía explicada + retos para armar","goUni()")}
+  ${hubCard("📋","4 · Proyecto eléctrico","Paso a paso · monofásico y trifásico","goProj()")}
+  ${hubCard("🏆","5 · Examen final",fin?`Mejor: ${fin.pct}% · ${fin.score} pts`:FINAL.desc,"startSession('final',0)",true)}
+  <div class="sec">Para consultar</div>
+  ${hubCard("⚖️","Normas y leyes AEA · IRAM · ERSeP","Lo que debe saber un Categoría III","goNormas()")}
+  <p class="note">${ALL.length+Object.values(MODQ).reduce((a,x)=>a+x.length,0)} preguntas · tu progreso se guarda en este teléfono.</p>`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- NIVELES ---------- */
+function levelCard(L){
+  const p = me(), lv = p.levels[L.id];
+  const sub = lv ? `${lv.pct>=PASS?"✔ ":""}Mejor: ${lv.pct}% · ${lv.score} pts` : L.desc;
+  return `<button class="lv" onclick="startSession('lv',${L.id})">
+    <div class="ico">${L.icon}</div>
+    <div class="t"><h3>Nivel ${lvPos(L.id)} · ${esc(L.name)}</h3><p>${esc(sub)} <span class="tag">${L.pdf}</span></p></div>
+    <div class="stars">${starsHTML(lv?lv.stars:0)}</div></button>`;
+}
+function screenLevels(){
+  if(needLogin()) return;
+  setNav("lev");
+  const p = me(), dl = doneCount(p), fin = p.levels.F;
+  app.innerHTML = `
+  <div class="top"><div class="brand">Niveles</div><div class="chip"><b>${dl}</b>/${LEVELS.length}</div></div>
+  <div class="hello"><p>Siguen el orden de los PDF del curso. Están todos abiertos: jugá el que quieras.</p></div>
+  <div class="bar"><div style="width:${dl/LEVELS.length*100}%"></div></div>
+  ${LEVELS.map(levelCard).join("")}
+  <div class="sec">Examen final</div>
+  <button class="lv hl" onclick="startSession('final',0)"><div class="ico">🏆</div><div class="t"><h3>Examen final</h3><p>${fin?`Mejor: ${fin.pct}% · ${fin.score} pts`:FINAL.desc}</p></div><div class="stars">${starsHTML(fin?fin.stars:0)}</div></button>`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- MÓDULOS ---------- */
+function modCard(m){
+  const p = me(), lv = p.levels[m.id], n = (MODQ[m.id]||[]).length, ok = lv && lv.pct >= PASS;
+  const st = p.studied[m.id] ? "📖 " : "";
+  const sub = lv ? `${st}${ok?"✔ Aprobado":"Mejor"}: ${lv.pct}% · ${n} preguntas` : `${st}${m.desc}`;
+  return `<button class="lv" onclick="screenModule('${m.id}','guia')">
+    <div class="ico">${m.icon}</div>
+    <div class="t"><h3>${m.n} · ${esc(m.name)}</h3><p>${esc(sub)}</p></div>
+    <div class="stars">${starsHTML(lv?lv.stars:0)}</div></button>`;
+}
+function screenMods(){
+  if(needLogin()) return;
+  setNav("mod");
+  const p = me(), done = modDone(p);
+  const read = MOD_ITEMS.filter(m=>p.studied[m.id]).length;
+  app.innerHTML = `
+  <div class="top"><div class="brand">Módulos</div><div class="chip"><b>${done}</b>/${MOD_ITEMS.length}</div></div>
+  <div class="hello"><p>Un módulo por cada PDF, en el orden del curso. Cada uno tiene <b>guía de estudio</b>, <b>resumen completo</b> y <b>juegos</b>. Todos abiertos. Estudiados: ${read}/${MOD_ITEMS.length}.</p></div>
+  <div class="bar"><div style="width:${done/MOD_ITEMS.length*100}%"></div></div>
+  ${MODS.map(m=>m.g?`<div class="sec">${m.g}</div>`:(MODQ[m.id]?modCard(m):"")).join("")}`;
+  window.scrollTo(0,0);
+}
+
+function fmtItem(s){
+  const m = /^(FÓRMULA|VALOR|REGLA|OJO|NORMA):\s*(.*)$/s.exec(s);
+  if(!m) return `<li>${esc(s)}</li>`;
+  const cls = {"FÓRMULA":"f","VALOR":"v","REGLA":"r","OJO":"o","NORMA":"n"}[m[1]];
+  return `<li class="k ${cls}"><span class="kt">${m[1]}</span>${esc(m[2])}</li>`;
+}
+function tableHTML(t){
+  return `<div class="tw"><h4>${esc(t.t)}</h4><div class="scr"><table class="dt"><tr>${t.cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>
+  ${t.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></div></div>`;
+}
+function screenModule(id, tab){
+  if(needLogin()) return;
+  setNav("mod");
+  const m = MOD_ITEMS.find(x=>x.id===id); if(!m) return screenMods();
+  const p = me(), st = STUDYD[id], lv = p.levels[id], n = MODQ[id].length;
+  tab = tab || "guia";
+  const seg = `<div class="seg">${[["guia","📖 Guía"],["resumen","📝 Resumen"],["juegos","🎮 Juegos"]].map(([k,l])=>
+    `<button class="${tab===k?"on":""}" onclick="screenModule('${id}','${k}')">${l}</button>`).join("")}</div>`;
+  let body = "";
+  if(tab==="juegos"){
+    body = `
+    <div class="theory">Practicá lo que estudiaste. Si te equivocás, la app te muestra el concepto correcto; si acertás, te lo amplía. Los errores quedan guardados para el repaso.</div>
+    ${hubCard("🎮","Cuestionario completo",`${n} preguntas${lv?` · mejor ${lv.pct}%`:""}`,`startSession('mod','${id}')`,true)}
+    ${hubCard("⚡","Partida rápida",`${Math.min(QUICK_Q,n)} preguntas al azar del módulo`,`startSession('mod','${id}',${QUICK_Q})`)}
+    ${STUDYD[id] ? hubCard("📝","Volver al resumen","Releé antes de jugar",`screenModule('${id}','resumen')`) : ""}`;
+  } else if(!st){
+    body = `<div class="theory">Este módulo todavía no tiene guía ni resumen cargados. Actualizá preguntas.js.</div>`;
+  } else if(tab==="guia"){
+    body = `
+    <div class="theory"><b>Objetivo:</b> ${esc(st.objetivo)}</div>
+    <div class="sec">Guía de estudio · paso a paso</div>
+    <ol class="steps">${st.guia.map(g=>`<li>${esc(g)}</li>`).join("")}</ol>
+    <div class="sec">Autoevaluación (respondé en voz alta)</div>
+    <ul class="selfq">${st.autoevaluacion.map(g=>`<li>${esc(g)}</li>`).join("")}</ul>
+    <button class="btn" onclick="screenModule('${id}','resumen')">Ir al resumen completo</button>`;
+  } else if(tab==="resumen"){
+    body = `
+    <div class="theory"><b>Objetivo:</b> ${esc(st.objetivo)}${st.pags?`<br><small>Fuente: ${esc(st.pags)}</small>`:""}</div>
+    ${st.resumen.map(s=>`<div class="rs"><h3>${esc(s.t)}</h3><ul>${s.items.map(fmtItem).join("")}</ul></div>`).join("")}
+    ${(st.formulas&&st.formulas.length)?`<div class="sec">Fórmulas</div>${st.formulas.map(f=>`
+      <div class="fm"><h4>${esc(f.n)}</h4><div class="eq">${esc(f.f)}</div><p>${esc(f.u)}</p><p class="ex"><b>Ejemplo:</b> ${esc(f.e)}</p></div>`).join("")}`:""}
+    ${(st.tablas&&st.tablas.length)?`<div class="sec">Tablas</div>${st.tablas.map(tableHTML).join("")}`:""}
+    <div class="sec">Para memorizar</div>
+    <ul class="keys">${st.claves.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>
+    <button class="btn ${p.studied[id]?"ghost":""}" onclick="toggleStudied('${id}')">${p.studied[id]?"✔ Marcado como estudiado (tocá para quitar)":"Marcar como estudiado"}</button>
+    <button class="btn" onclick="screenModule('${id}','juegos')">Ir a los juegos</button>`;
+  }
+  app.innerHTML = `
+  <div class="top"><button class="chip" onclick="screenMods()" style="cursor:pointer">‹ Módulos</button><div class="chip">${m.n}</div></div>
+  <div class="mh"><div class="ico">${m.icon}</div><div><h2>${esc(m.name)}</h2><p>${esc(m.desc)}</p></div></div>
+  ${seg}${body}`;
+  window.scrollTo(0,0);
+}
+function toggleStudied(id){
+  const p = me(); p.studied[id] = !p.studied[id]; awardBadges(p); save(); screenModule(id,"resumen");
+}
+
+/* ---------- Sesión de preguntas ---------- */
+function mk(a, lv){
+  return {q:a[0], c:a[5], x:a[6], lv, opts: shuffle([a[1],a[2],a[3],a[4]].map((t,i)=>({t, ok:i===0})))};
+}
+function startSession(mode, id, lim){
+  let qs = [];
+  if (mode==="lv") qs = shuffle(Q[id]).map(a=>mk(a,id));
+  else if (mode==="final") qs = shuffle(POOL).slice(0,FINAL_Q).map(x=>mk(x.a,x.lv));
+  else if (mode==="mod") qs = shuffle(MODQ[id]||[]).slice(0, lim||999).map(a=>mk(a,id));
+  else { const w = me().wrong; qs = shuffle(POOL.filter(x=>w.includes(x.a[0]))).slice(0,REV_Q).map(x=>mk(x.a,x.lv)); }
+  if(!qs.length){ screenHome(); return; }
+  S = {mode, id: mode==="final" ? "F" : id, qs, i:0, score:0, ok:0, streak:0, maxStreak:0, done:false, quick:!!lim};
+  screenQuestion();
+}
+function sessionLabel(){
+  if (S.mode==="final") return "🏆 Examen final";
+  if (S.mode==="rev") return "🛠️ Repaso de errores";
+  if (S.mode==="mod"){ const m = MOD_ITEMS.find(x=>x.id===S.id); return `${m.icon} Módulo ${m.n} · ${m.name}`; }
+  const L = LV(S.id); return `${L.icon} Nivel ${lvPos(L.id)} · ${L.name}`;
+}
+function screenQuestion(){
+  setNav(null);
+  const q = S.qs[S.i];
+  app.innerHTML = `
+  <div class="qhead"><span>${esc(sessionLabel())}</span><span>${S.i+1}/${S.qs.length}</span></div>
+  <div class="bar"><div style="width:${(S.i/S.qs.length)*100}%"></div></div>
+  <div class="qhead"><span>Racha: ${S.streak} 🔥</span><span>${S.mode==="rev"?"Sin puntos":S.score+" pts"}</span></div>
+  <h2 class="q">${esc(q.q)}</h2>
+  <div id="opts">${q.opts.map((o,i)=>`<button class="opt" onclick="answer(${i})">${esc(o.t)}</button>`).join("")}</div>
+  <div id="fb"></div>
+  <button class="link" onclick="quitQuiz()">Salir</button>`;
+  window.scrollTo(0,0);
+}
+function answer(i){
+  if(S.done) return;
+  S.done = true;
+  const p = me(), q = S.qs[S.i], good = q.opts[i].ok;
+  const btns = document.querySelectorAll(".opt");
+  q.opts.forEach((o,k)=>{
+    if(o.ok) btns[k].classList.add("ok");
+    else if(k===i) btns[k].classList.add("bad");
+    else btns[k].classList.add("dim");
+  });
+  let gain = 0;
+  if(good){
+    S.ok++; S.streak++; S.maxStreak = Math.max(S.maxStreak, S.streak);
+    if(S.mode!=="rev"){ gain = 10 + (S.streak>=3 ? 5 : 0); S.score += gain; }
+    else p.fixed++;
+    p.wrong = p.wrong.filter(t => t !== q.q);
+  } else {
+    S.streak = 0;
+    if(!p.wrong.includes(q.q)) p.wrong.push(q.q);
+  }
+  save();
+  const right = q.opts.find(o=>o.ok).t;
+  const last = S.i === S.qs.length-1;
+  const nextBtn = `<button class="btn" onclick="next()">${last?"Ver resultado":"Siguiente"}</button>`;
+  $("#fb").innerHTML = good ? `
+    <div class="fb ok"><h4>✅ ¡Correcto!${gain?` +${gain} pts`:""}</h4>
+    <span class="lbl">Concepto</span>${esc(q.c)}
+    <span class="lbl">Para ampliar</span>${esc(q.x)}</div>${nextBtn}` : `
+    <div class="fb bad"><h4>❌ Incorrecto</h4>
+    <span class="lbl">Respuesta correcta</span><b>${esc(right)}</b>
+    <span class="lbl">Concepto correcto</span>${esc(q.c)}</div>${nextBtn}`;
+  $("#fb").scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+function next(){
+  S.i++; S.done = false;
+  if(S.i >= S.qs.length) return finish();
+  screenQuestion();
+}
+function quitQuiz(){ if(confirm("¿Salir? Se pierde el progreso de esta partida (las respuestas ya dadas quedan registradas para el repaso).")){ const m=S.mode, id=S.id; S=null; if(m==="mod") screenModule(id,"juegos"); else if(m==="lv") screenLevels(); else screenHome(); } }
+
+function awardBadges(p){
+  const got = [], L = p.levels;
+  const give = id => { if(!p.badges.includes(id)){ p.badges.push(id); got.push(BADGES.find(b=>b.id===id)); } };
+  const pts = total(p), perf = Object.values(L).filter(v=>v.pct===100).length, done = doneCount(p);
+  if(Object.keys(L).length) give("first");
+  if(p.bestStreak>=5) give("streak5");
+  if(p.bestStreak>=10) give("streak10");
+  if(perf>=1) give("perfect");
+  if(perf>=3) give("perfect3");
+  if(pts>=500) give("pts500");
+  if(pts>=1000) give("pts1000");
+  if(pts>=1500) give("pts1500");
+  if(pts>=3000) give("pts3000");
+  if(done>=3) give("lv3");
+  if(done>=8) give("lv7");
+  if([4,5,6,7].every(k=>L[k] && L[k].pct>=90)) give("calc");
+  if(starsTot(p)>=30) give("stars30");
+  if(p.fixed>=10) give("fixer");
+  if(done>=LEVELS.length) give("all");
+  if(L.F && L.F.pct>=PASS) give("final");
+  const U=["U1","U2","U3","U4"].filter(k=>L[k]&&L[k].pct>=PASS).length;
+  if(U>=1) give("uni1");
+  if(U>=4) give("uniall");
+  const MP = modDone(p);
+  if(MP>=1) give("mod1");
+  if(MP>=10) give("mod10");
+  if(MOD_ITEMS.some(m=>L[m.id]&&L[m.id].pct===100)) give("modperf");
+  if(MP>=MOD_ITEMS.length) give("modall");
+  const rd = MOD_ITEMS.filter(m=>p.studied[m.id]).length;
+  if(rd>=5) give("read5");
+  if(rd>=MOD_ITEMS.length) give("readall");
+  return got;
+}
+
+function badgesBox(got){ return got.length?`<div class="newb">${got.map(b=>`<div class="badge">${b.e} <b>${b.n}</b></div>`).join("")}</div>`:""; }
+function finish(){
+  const p = me(), n = S.qs.length;
+  const pct = Math.round(S.ok/n*100);
+  p.bestStreak = Math.max(p.bestStreak, S.maxStreak);
+
+  if(S.mode==="rev"){
+    const got = awardBadges(p); save();
+    const left = p.wrong.filter(t => POOL.some(x=>x.a[0]===t)).length;
+    app.innerHTML = `
+    <div class="res">
+      <div class="big">🛠️</div>
+      <h2>Repaso terminado</h2>
+      <p>${S.ok} de ${n} corregidas${left?` · te quedan ${left} por reforzar`:" · ¡no te quedan errores pendientes!"}</p>
+      ${badgesBox(got)}
+      <div style="margin-top:18px">
+        ${left?`<button class="btn" onclick="startSession('rev',0)">Seguir repasando</button>`:""}
+        <button class="btn ${left?"ghost":""}" onclick="screenHome()">Volver al inicio</button>
+      </div>
+    </div>`;
+    S = null; window.scrollTo(0,0); return;
+  }
+
+  const stars = pct===100 ? 3 : pct>=85 ? 2 : pct>=PASS ? 1 : 0;
+  const key = S.id, prev = p.levels[key], passed = pct>=PASS;
+  p.levels[key] = {score:Math.max(S.score, prev?prev.score:0), pct:Math.max(pct, prev?prev.pct:0), stars:Math.max(stars, prev?prev.stars:0)};
+  const got = awardBadges(p); save();
+  const wl = p.wrong.length;
+  const wbtn = wl ? `<button class="btn ghost" onclick="startSession('rev',0)">Repasar errores (${wl})</button>` : "";
+  const head = (ok, tit) => `<div class="big">${ok?"🎉":"💪"}</div><h2>${tit}</h2>`;
+  const foot = `<p>${S.ok} de ${n} correctas · ${pct}%</p><div class="pts">+${S.score}</div>
+    <div class="stars" style="font-size:30px">${starsHTML(stars)}</div>
+    <p style="margin-top:10px">${passed?"Seguí así.":`Necesitás ${PASS}% para aprobar. Repasá los conceptos y probá de nuevo.`}</p>${badgesBox(got)}`;
+  let html;
+  if(S.mode==="mod"){
+    const m = MOD_ITEMS.find(x=>x.id===key), idx = MOD_ITEMS.indexOf(m), nxt = MOD_ITEMS[idx+1];
+    html = `${head(passed,passed?"¡Módulo aprobado!":"Casi lo lográs")}<p>${m.icon} Módulo ${m.n} · ${esc(m.name)}</p>${foot}
+      <div style="margin-top:18px">
+        <button class="btn" onclick="startSession('mod','${key}'${S.quick?","+QUICK_Q:""})">Jugar de nuevo</button>
+        ${!passed&&STUDYD[key]?`<button class="btn ghost" onclick="screenModule('${key}','resumen')">Releer el resumen</button>`:""}
+        ${nxt?`<button class="btn ghost" onclick="screenModule('${nxt.id}','guia')">Siguiente módulo</button>`:""}
+        ${wbtn}<button class="btn ghost" onclick="screenMods()">Elegir otro módulo</button></div>`;
+  } else if(S.mode==="final"){
+    html = `${head(passed,passed?"¡Examen final aprobado!":"Casi lo lográs")}${foot}
+      <div style="margin-top:18px"><button class="btn" onclick="startSession('final',0)">Repetir examen</button>${wbtn}
+      <button class="btn ghost" onclick="screenHome()">Volver al inicio</button></div>`;
+  } else {
+    const idx = LEVELS.findIndex(l=>l.id===key), nxt = LEVELS[idx+1];
+    html = `${head(passed,passed?"¡Nivel aprobado!":"Casi lo lográs")}<p>Nivel ${idx+1} · ${esc(LV(key).name)}</p>${foot}
+      <div style="margin-top:18px">
+        ${passed&&nxt?`<button class="btn" onclick="startSession('lv',${nxt.id})">Siguiente nivel</button>`:""}
+        ${passed&&!nxt?`<button class="btn" onclick="startSession('final',0)">Ir al examen final</button>`:""}
+        <button class="btn ${passed?"ghost":""}" onclick="startSession('lv',${key})">Repetir nivel</button>
+        ${wbtn}<button class="btn ghost" onclick="screenLevels()">Elegir otro nivel</button></div>`;
+  }
+  app.innerHTML = `<div class="res">${html}</div>`;
+  S = null; window.scrollTo(0,0);
+}
+
+function screenRank(){
+  if(needLogin()) return;
+  setNav(null);
+  const draw = (r, remote) => {
+    const medal = i => ["🥇","🥈","🥉"][i] || (i+1);
+    app.innerHTML = `
+    <div class="top"><button class="chip" onclick="screenHome()" style="cursor:pointer">‹ Inicio</button><div class="brand">Ranking</div></div>
+    <div class="card"><table>
+      <tr><th class="pos">#</th><th>Jugador</th><th class="n">★</th><th class="n">Puntos</th></tr>
+      ${r.map((x,i)=>`<tr class="${x.n===db.current?"me":""}"><td class="pos">${medal(i)}</td>
+        <td>${esc(x.n)}<small>${titleFor(x.pts)} · ${x.done} aprobados</small></td>
+        <td class="n">${x.st}</td><td class="n">${x.pts}</td></tr>`).join("")}
+    </table></div>
+    <p class="note">${remote ? "Ranking de todos los alumnos del curso." : (SRV ? "Sin conexión: se muestra solo este dispositivo." : "El ranking incluye a todos los que juegan en este dispositivo.")}</p>`;
+    window.scrollTo(0,0);
+  };
+  if(SRV){
+    app.innerHTML = '<div class="top"><button class="chip" onclick="screenHome()" style="cursor:pointer">‹ Inicio</button><div class="brand">Ranking</div></div><p class="note">Cargando…</p>';
+    syncNow().then(remoteRanking).then(r => draw(r || ranking(), !!r));
+  } else draw(ranking(), false);
+}
+function screenBadges(){
+  if(needLogin()) return;
+  setNav(null);
+  const p = me();
+  app.innerHTML = `
+  <div class="top"><button class="chip" onclick="screenHome()" style="cursor:pointer">‹ Inicio</button><div class="brand">Premios</div><div class="chip"><b>${p.badges.length}</b>/${BADGES.length}</div></div>
+  <div class="bgrid">${BADGES.map(b=>{
+    const on = p.badges.includes(b.id);
+    return `<div class="bd ${on?"on":"off"}"><div class="e">${b.e}</div><h4>${b.n}</h4><p>${b.d}</p></div>`;
+  }).join("")}</div>
+  <div class="sec">Rangos</div>
+  <div class="card"><table>
+    ${TITLES.map(t=>`<tr class="${titleFor(total(p))===t.t?"me":""}"><td>${t.t}</td><td class="n">${t.min} pts</td></tr>`).join("")}
+  </table></div>
+  <button class="btn ghost" onclick="goRank()">Ver ranking</button>`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- PROYECTO ELÉCTRICO paso a paso ---------- */
+let PTAB = "mono", PSUB = "mono1";
+const PD = (typeof PROYECTO !== "undefined") ? PROYECTO : {};
+const ul = (a, cls) => (a&&a.length) ? `<ul class="${cls||""}">${a.map(x=>fmtItem(String(x))).join("")}</ul>` : "";
+function refChips(refs){
+  return (refs||[]).filter(r=>MOD_ITEMS.some(m=>m.id===r)).map(r=>{const m=MOD_ITEMS.find(x=>x.id===r);
+    return `<button class="rc" onclick="screenModule('${r}','resumen')">${m.icon} Mód. ${m.n}</button>`;}).join("");
+}
+function screenProyecto(tab, sub){
+  if(needLogin()) return;
+  setNav("proj");
+  if(tab) PTAB = tab;
+  if(sub) PSUB = sub;
+  if(PTAB==="pdf") return screenGuiaPDF();
+  const P = PTAB==="tri" ? PD.tri : PD[PSUB];
+  const seg = `<div class="seg">${[["mono","🔌 Monofásico"],["tri","⚡ Trifásico"],["pdf","📄 Guía PDF"]].map(([k,l])=>
+    `<button class="${PTAB===k?"on":""}" onclick="screenProyecto('${k}')">${l}</button>`).join("")}</div>` +
+    (PTAB==="mono" ? `<div class="seg">${[["mono1","Proyecto 1 · GE Mínimo"],["mono2","Proyecto 2 · GE Medio"]].map(([k,l])=>`<button class="${PSUB===k?"on":""}" onclick="screenProyecto('mono','${k}')">${l}</button>`).join("")}</div>` : "");
+  let body;
+  if(!P){
+    body = `<div class="theory">Este proyecto no está cargado. Actualizá preguntas.js con la versión nueva.</div>`;
+  } else {
+    body = `
+    <div class="theory"><b>${esc(P.titulo)}</b><br><small>${esc(P.tipo||"")}</small><p style="margin-top:8px">${esc(P.resumen||"")}</p>
+      <p class="note" style="text-align:left;margin-top:8px">Cómo estudiarlo: leé los pasos en orden, tal como aparecen en la guía del curso. Tocá cada paso para abrirlo. Al final tenés el unifilar completo, las tablas, los errores comunes y una lista de control.</p></div>
+    <div class="sec">Datos de entrada</div>
+    <ul class="selfq">${(P.datos||[]).map(d=>`<li>${esc(d)}</li>`).join("")}</ul>
+    <div class="sec">Paso a paso (${(P.pasos||[]).length})</div>
+    ${(P.pasos||[]).map((s,i)=>`
+      <details class="pstep"><summary><span class="pn">${esc(s.n!=null?s.n:i+1)}</span><span>${esc(String(s.t).replace(/^Paso\s*\d+\s*[:.-]\s*/i,""))}</span></summary>
+        <div class="pb">
+          <p>${esc(s.que||"")}</p>
+          ${(s.como&&s.como.length)?`<h5>Qué hacer</h5><ol class="steps">${s.como.map(c=>`<li>${esc(c)}</li>`).join("")}</ol>`:""}
+          ${(s.norma&&s.norma.length)?`<h5>Normas y reglas</h5><ul class="rs-l">${s.norma.map(c=>`<li class="k n"><span class="kt">NORMA</span>${esc(c)}</li>`).join("")}</ul>`:""}
+          ${(s.calculo&&s.calculo.length)?`<h5>Cálculo</h5><ul class="rs-l">${s.calculo.map(c=>`<li class="k f"><span class="kt">CUENTA</span>${esc(c)}</li>`).join("")}</ul>`:""}
+          ${s.resultado?`<div class="resu">✔ ${esc(s.resultado)}</div>`:""}
+          <div class="refs">${refChips(s.ref)}</div>
+        </div></details>`).join("")}
+    ${(P.unifilar_final&&P.unifilar_final.length)?`<div class="sec">Unifilar final (de la acometida al tablero)</div><ol class="steps">${P.unifilar_final.map(c=>`<li>${esc(c)}</li>`).join("")}</ol>`:""}
+    ${(P.tablas&&P.tablas.length)?`<div class="sec">Tablas del proyecto</div>${P.tablas.map(tableHTML).join("")}`:""}
+    ${(P.errores_comunes&&P.errores_comunes.length)?`<div class="sec">Errores comunes</div><ul class="selfq err2">${P.errores_comunes.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>`:""}
+    ${(P.checklist&&P.checklist.length)?`<div class="sec">Lista de control antes de entregar</div><ul class="chk">${P.checklist.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>`:""}`;
+  }
+  app.innerHTML = `
+  <div class="top"><div class="brand">Proyecto eléctrico</div></div>
+  ${seg}${body}`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- Visor de la Guía del Proyecto Eléctrico (PDF) ---------- */
+let GZ = 100;
+function guiaHeader(){
+  return `<div class="top"><div class="brand">Proyecto eléctrico</div></div>
+  <div class="seg">${[["mono","🔌 Monofásico"],["tri","⚡ Trifásico"],["pdf","📄 Guía PDF"]].map(([k,l])=>
+    `<button class="${k==="pdf"?"on":""}" onclick="screenProyecto('${k}')">${l}</button>`).join("")}</div>`;
+}
+function screenGuiaPDF(){
+  const draw = () => {
+    const pages = window.GUIA_PDF;
+    app.innerHTML = guiaHeader() + `
+    <div class="theory">Guía completa del proyecto eléctrico: variables, dos proyectos resueltos paso a paso y variante trifásica. Usá + y − para agrandar la letra.</div>
+    <div class="pdfbar"><button onclick="guiaZoom(-25)">−</button><span id="gz">${GZ}%</span><button onclick="guiaZoom(25)">+</button>
+      <a href="Guia_Proyecto_Electrico.pdf" target="_blank" rel="noopener">Abrir PDF</a></div>
+    <div class="pdfv" id="pdfv">${pages.map((src,i)=>`<img loading="lazy" alt="Página ${i+1}" src="${src}" style="width:${GZ}%">`).join("")}</div>`;
+    window.scrollTo(0,0);
+  };
+  if(window.GUIA_PDF) return draw();
+  app.innerHTML = guiaHeader() + '<div class="theory">Cargando la guía…</div>';
+  const sc = document.createElement("script");
+  sc.src = "guia_pdf.js";
+  sc.onload = draw;
+  sc.onerror = () => { app.innerHTML = guiaHeader() + `<div class="theory">No se pudo cargar el visor. Revisá que el archivo <b>guia_pdf.js</b> esté en la misma carpeta que index.html.</div><a class="btn" style="display:block;text-align:center;text-decoration:none" href="Guia_Proyecto_Electrico.pdf" target="_blank" rel="noopener">Abrir el PDF</a>`; };
+  document.head.appendChild(sc);
+}
+function guiaZoom(d){
+  GZ = Math.max(100, Math.min(300, GZ + d));
+  document.querySelectorAll("#pdfv img").forEach(i => i.style.width = GZ + "%");
+  const z = $("#gz"); if(z) z.textContent = GZ + "%";
+}
+
+/* ---------- NORMAS: AEA · IRAM · ERSeP ---------- */
+const ND = (typeof NORMAS !== "undefined" && NORMAS) ? NORMAS : null;
+let NQ = "";
+function normaItem(it){
+  const hay = (it.n+" "+it.t+" "+it.q+" "+it.c).toLowerCase();
+  if(NQ && !hay.includes(NQ)) return "";
+  return `<details class="pstep nrm" ${NQ?"open":""}><summary><span class="pn" style="border-radius:8px;width:auto;min-width:28px;padding:0 6px">§</span><span>${esc(it.n)}<small style="display:block;font-weight:400;color:var(--mut)">${esc(it.t)}</small></span></summary>
+    <div class="pb"><h5>Qué dice</h5><p>${esc(it.q)}</p><h5>Cómo se cumple</h5><p>${esc(it.c)}</p>
+    <div class="refs">${refChips(it.m)}</div></div></details>`;
+}
+function setNQ(v){ NQ = v.trim().toLowerCase(); const pos = document.activeElement && document.activeElement.selectionStart; screenNormas(true); const i=$("#nq"); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch(e){} } }
+function screenNormas(keep){
+  if(needLogin()) return;
+  setNav("norm");
+  if(!ND){ app.innerHTML = '<div class="top"><div class="brand">Normas</div></div><div class="theory">Actualizá preguntas.js para ver esta sección.</div>'; return; }
+  const c = ND.cat3;
+  const li = a => `<ul class="selfq">${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  const groups = ND.grupos.map(g=>{ const h = g.items.map(normaItem).join(""); return h ? `<div class="sec">${esc(g.grupo)}</div>${h}` : ""; }).join("");
+  app.innerHTML = `
+  <div class="top"><div class="brand">Normas y leyes</div></div>
+  <div class="theory">${esc(ND.intro)}</div>
+  <input id="nq" class="in" placeholder="Buscar norma (ej: 2071, 90364, APTO)" value="${esc(NQ)}" oninput="setNQ(this.value)" autocomplete="off">
+  ${NQ ? "" : `
+  <div class="sec">Un Categoría III puede</div>${li(c.puede).replace(/❓/g,"")}
+  <div class="sec">Un Categoría III NO puede</div>${li(c.no_puede)}
+  <div class="sec">Obligaciones del Categoría III</div>${li(c.obligaciones)}`}
+  ${groups || '<p class="note">Sin resultados.</p>'}
+  ${NQ ? "" : `
+  <div class="sec">Resumen rápido</div>${tableHTML({t:"Norma · para qué · dónde", cols:ND.tabla_resumen.cols, rows:ND.tabla_resumen.rows})}
+  <div class="sec">Lista de control del instalador</div><ul class="chk">${ND.checklist.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+  <div class="sec">Ojo: dudas y contradicciones</div><ul class="selfq err2">${ND.ojo.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+  <p class="note">Basado en el material del curso. Confirmá siempre con la reglamentación vigente del ERSeP, la AEA y tu distribuidora.</p>`}`;
+  if(!keep) window.scrollTo(0,0);
+}
+
+
+/* ============ INICIO ============ */
+if(db.current && db.players[db.current] && (!SRV || (SESS && SESS.name===db.current))){ screenHome(); if(SRV) pullAndMerge().then(()=>{ if(!S && document.querySelector('.hello h2')) screenHome(); }).catch(e=>{ if(e.status===401){ setSession(null); screenLogin(); } }); }
+else screenLogin();
+if("serviceWorker" in navigator && /^https?:/.test(location.protocol)){
+  window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+
+</script>
+<script>
+/* ============================================================
+   UNIFILAR - Guía explicada + retos interactivos
+   Basado en el material del curso (módulos de acometida, TPA,
+   circuito seccional, TPU, PAT, canalizaciones y unifilares).
+   Para editar: cambiá los textos de UGUIDE (guía) o de UCH (retos).
+   ============================================================ */
+
+/* ---------- estilos de esta pestaña ---------- */
+(function(){
+  const st = document.createElement("style");
+  st.textContent = `
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:16px}
+  .seg button{flex:1;border:0;background:none;color:var(--mut);font:inherit;font-weight:600;padding:10px;border-radius:10px;cursor:pointer}
+  .seg button.on{background:var(--acc);color:#1a1300}
+  .theory{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px;line-height:1.55;margin-bottom:14px}
+  .theory b{color:var(--acc)}
+  .grp{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:16px 0 8px 46px}
+  .un{display:flex;gap:12px}
+  .un .rail{width:34px;display:flex;flex-direction:column;align-items:center;color:var(--acc);flex:none}
+  .un .rail:after{content:"";flex:1;width:2px;background:var(--line);margin-top:2px}
+  .un:last-child .rail:after{display:none}
+  .un .bx{flex:1;min-width:0;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+  .un h4{font-size:15px;line-height:1.3}
+  .un .sp{color:var(--acc);font-size:13px;margin-top:2px;line-height:1.35}
+  .un .ud{display:none;font-size:14px;line-height:1.55;margin-top:8px}
+  .un.open .ud{display:block}
+  .un .hint{font-size:11px;color:var(--mut);margin-top:4px}
+  .un.open .hint{display:none}
+  .un .lab{font-size:12px;color:var(--mut)}
+  .un .pick{font-size:15px;line-height:1.35;margin-top:2px}
+  .un .empty{color:var(--mut);font-style:italic}
+  .un .bx.ok{border-color:var(--ok);background:rgba(46,204,113,.10)}
+  .un .bx.bad{border-color:var(--bad);background:rgba(255,93,93,.10)}
+  .un .why{display:none;font-size:13px;line-height:1.5;margin-top:8px;color:var(--txt)}
+  .un .bx.ok .why,.un .bx.bad .why{display:block}
+  .pias{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 2px}
+  .pias div{background:var(--card2);border-radius:10px;padding:8px 4px;text-align:center;font-size:12px;line-height:1.3}
+  .pias b{display:block;color:var(--acc);font-size:12px}
+  .sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;z-index:50}
+  .sheet>div{background:var(--bg);width:100%;max-width:560px;margin:0 auto;border-radius:20px 20px 0 0;padding:16px;max-height:80vh;overflow:auto}
+  .sheet h3{font-size:15px;margin-bottom:10px}
+  .spot{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);color:var(--txt);border-radius:14px;padding:13px 14px;margin-bottom:10px;font:inherit;font-size:15px;line-height:1.4;cursor:pointer}
+  .spot .tick{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;font-size:14px}
+  .spot.sel{border-color:var(--bad)}
+  .spot.sel .tick{background:var(--bad);border-color:var(--bad);color:#fff}
+  .spot.ok{border-color:var(--ok);background:rgba(46,204,113,.10)}
+  .spot.bad{border-color:var(--bad);background:rgba(255,93,93,.10)}
+  .spot small{display:block;margin-top:6px;color:var(--mut);font-size:13px}
+  .note2{font-size:12px;color:var(--mut);line-height:1.5;margin-top:14px}
+  `;
+  document.head.appendChild(st);
+})();
+
+/* ---------- símbolos (SVG simples, estilo unifilar) ---------- */
+const USYM = {
+  net:  '<circle cx="16" cy="16" r="5"/><line x1="16" y1="0" x2="16" y2="11"/><line x1="16" y1="21" x2="16" y2="32"/>',
+  fuse: '<line x1="16" y1="0" x2="16" y2="32"/><rect x="10" y="6" width="12" height="20" rx="2" fill="var(--bg)"/>',
+  cable:'<line x1="16" y1="0" x2="16" y2="32"/><line x1="10" y1="11" x2="22" y2="17"/><line x1="10" y1="16" x2="22" y2="22"/>',
+  meter:'<line x1="16" y1="0" x2="16" y2="4"/><circle cx="16" cy="16" r="12" fill="var(--bg)"/><text x="16" y="19" font-size="8" text-anchor="middle" stroke="none" fill="currentColor">kWh</text><line x1="16" y1="28" x2="16" y2="32"/>',
+  itm:  '<line x1="16" y1="0" x2="16" y2="8"/><line x1="16" y1="8" x2="24" y2="24"/><line x1="16" y1="24" x2="16" y2="32"/><line x1="11" y1="5" x2="21" y2="11"/>',
+  id:   '<line x1="16" y1="0" x2="16" y2="6"/><rect x="5" y="6" width="22" height="20" rx="4" fill="var(--bg)"/><text x="16" y="20" font-size="10" text-anchor="middle" stroke="none" fill="currentColor">ID</text><line x1="16" y1="26" x2="16" y2="32"/>',
+  bus:  '<line x1="2" y1="16" x2="30" y2="16" stroke-width="4"/><line x1="8" y1="16" x2="8" y2="30"/><line x1="16" y1="16" x2="16" y2="30"/><line x1="24" y1="16" x2="24" y2="30"/>',
+  pe:   '<line x1="16" y1="0" x2="16" y2="14"/><line x1="6" y1="14" x2="26" y2="14"/><line x1="10" y1="20" x2="22" y2="20"/><line x1="14" y1="26" x2="18" y2="26"/>',
+  box:  '<rect x="3" y="5" width="26" height="22" rx="3" stroke-dasharray="4 3"/>',
+  spd:  '<line x1="16" y1="0" x2="16" y2="8"/><rect x="10" y="8" width="12" height="12" rx="2" fill="var(--bg)"/><line x1="16" y1="20" x2="16" y2="24"/><line x1="9" y1="24" x2="23" y2="24"/><line x1="12" y1="28" x2="20" y2="28"/>'
+};
+function usym(k){
+  return `<svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${USYM[k]||USYM.cable}</svg>`;
+}
+
+/* ---------- GUÍA EXPLICADA ---------- */
+const UGUIDE = [
+ {g:"Zona de la distribuidora"},
+ {k:"net",  t:"RDD · Red de la distribuidora", s:"220 V monofásica · 380 V trifásica",
+  d:"Es la red aérea que entrega la energía. Los postes van cada 25 m aproximadamente y los transformadores generan las fases y el neutro. El cable es preensamblado de aluminio, trenzado para reducir corrientes parásitas."},
+ {k:"fuse", t:"DPLA · Fusible aéreo", s:"IRAM 2445 · 63 A por fase",
+  d:"Dispositivo de Protección de la Línea de Alimentación. Se coloca un fusible por cada fase de bajada. Se funde ante un cortocircuito o un exceso de carga, protegiendo los conductores."},
+ {k:"cable",t:"LAD · Línea de alimentación", s:"Cable concéntrico IRAM 63001 · mín. 4 mm² (monofásico)",
+  d:"Lleva el neutro en una capa exterior para evitar el robo de energía. Se usa en 4, 6 o 10 mm² (6 mm² en trifásico). Baja al pilar por el aislante cerámico, la pipeta y el caño de doble aislación IRAM 2477 de 3 m."},
+ {k:"meter",t:"Medidor de energía", s:"Caja PVC MN127 (mono) · MN128 (tri) · en la línea municipal",
+  d:"El pilar se ubica sobre la línea municipal: el frente es de la distribuidora y la parte trasera es del cliente. Solo el técnico de la distribuidora interviene la caja, coloca el medidor y la precinta. Mide en kWh."},
+ {g:"Zona gris · acometida del usuario"},
+ {k:"cable",t:"LP · Línea principal", s:"2 × IRAM 247-3 · igual sección que la LAD · máx. 2 m",
+  d:"Va del medidor a los polos superiores del ITM del TPA. Neutro celeste y fase marrón, negro o rojo. La deja pasada el electricista con el ITM abierto y la distribuidora la conecta al medidor al energizar."},
+ {k:"itm",  t:"TPA · Tablero de Protección de la Acometida", s:"ITM 2×25 A curva D (hasta 5 kW) · 4×25 A (5 a 10 kW)",
+  d:"Gabinete de PVC clase II, IP 54 IK 9, con 90 cm libres, altura mínima de 0,70 m, a no más de 2 m del medidor y a 50 cm de gas y agua. El ITM corta todos los polos (2 en monofásica y 4 en trifásica) y protege al cable del circuito seccional. No se permiten fusibles ni interruptores manuales. Esta zona no tiene ID ni PAT, por eso todo es doble aislación."},
+ {k:"cable",t:"CS · Circuito seccional", s:"Cable subterráneo IRAM 2178-1 · mín. 4 mm²",
+  d:"Une el TPA con el TPU. Enterrado: zanja de 0,70 m (urbano puede ser 0,40 m) con arena, cable, ladrillos y cinta de riesgo eléctrico. Debe cumplir I(B) ≤ I(N) ≤ I(Z) y una caída de tensión máxima de 3% en iluminación y 5% en motores. Cámara de inspección cada 25 m y en cada curva."},
+ {g:"Zona del usuario · TPU"},
+ {k:"itm",  t:"ITM gemelo (opcional)", s:"Repite el ITM del TPA",
+  d:"Solo se justifica si hay una distancia considerable entre TPA y TPU. Va al inicio del TPU, antes del ID."},
+ {k:"id",   t:"ID · Interruptor diferencial", s:"2×25 A · 30 mA (4×25 A en trifásica)",
+  d:"Protege a las personas contra fugas a tierra (contacto indirecto) y trabaja junto con la puesta a tierra. Compara la corriente de ida con la de retorno y abre en milisegundos si hay diferencia. El neutro entra al borne marcado con N. Se prueba el botón de test una vez al mes. El curso adelanta que las normas nuevas pedirán tipo A en viviendas nuevas."},
+ {k:"bus",  t:"Puente peine", s:"Obligatorio si hay más de 2 PIA",
+  d:"Distribuye la alimentación a las cabezas de los PIA de forma segura. Es de 2 polos en monofásica y 4 en trifásica. Los puentes cableados y las conexiones en guirnalda están prohibidos. Con más de 6 PIA se agrega una bornera de distribución.",
+  pias:true},
+ {k:"box",  t:"Reserva y tablero", s:"50% de módulos libres · IP 41 · clase II",
+  d:"Se deja una reserva libre del 50% de lo instalado. El TPU es de PVC clase II con IP 41 mínimo, base a 1,5 m, 90 cm libres al frente, 25 cm de gas y agua, señal de riesgo eléctrico, rotulado de cada interruptor y el unifilar pegado en la tapa. No se instala en el baño."},
+ {k:"spd",  t:"Protector de sobretensiones (recomendado)", s:"Tipo 2 en cabecera · tipo 3 para equipos delicados",
+  d:"Usa varistores entre fase y tierra y entre neutro y tierra: cuando la tensión supera su valor nominal, derivan el pico a tierra. Se coloca en zonas con más de 25 rayos por año."},
+ {g:"Puesta a tierra · sistema TT"},
+ {k:"pe",   t:"PAT · Jabalina", s:"IRAM 2309 · cobre ½″ × 1,5 m · cámara de inspección · ≤ 40 Ω",
+  d:"Bornera de Pe en el TPU y cable IRAM 247-3 verde-amarillo de al menos 4 mm² (igual a la alimentación) hasta la jabalina, lo más cerca posible del TPU. La resistencia se mide con telurímetro y no debe superar 40 Ω; si la supera se agrega otra jabalina separada al doble de la distancia de la más larga."}
+];
+
+/* ---------- RETOS ---------- */
+const UCH = [
+{id:"U1", icon:"🏠", name:"Acometida monofásica", kind:"build",
+ intro:"<b>Teoría primero.</b> La acometida va de la RDD hasta el TPA. La distribuidora responde hasta la caja de medidor; desde la LP en adelante es responsabilidad del instalador. Entre el pilar y el TPU está la «zona gris»: solo hay ITM (sin ID ni PAT), por eso todo debe ser de <b>doble aislación</b>. Elegí cada componente del unifilar, de arriba hacia abajo.",
+ slots:[
+ {l:"Protección en el poste (DPLA)",k:"fuse",o:["Fusible aéreo IRAM 2445 de 63 A por fase","Interruptor diferencial de 30 mA","Fusible de 6 A","Sin protección"],
+  w:"El DPLA protege la línea de alimentación: fusible aéreo IRAM 2445, normalmente de 63 A, uno por cada fase de bajada."},
+ {l:"Línea de alimentación (LAD)",k:"cable",o:["Cable concéntrico IRAM 63001, mínimo 4 mm²","Cable tipo taller IRAM 247-5 de 2 × 1,5 mm²","Unipolar IRAM 247-3 de 1 mm² a la vista","Cuerda de cobre desnuda"],
+  w:"La LAD usa cable concéntrico (el neutro exterior evita el robo). La distribuidora no puede hacerla con menos de 4 mm²."},
+ {l:"Bajada del pilar",k:"box",o:["Caño de doble aislación IRAM 2477 con pipeta de PVC","Caño corrugado naranja","Caño de chapa común sin aislación","Cable colgado sin caño"],
+  w:"El caño de doble aislación (alma galvanizada con aislante interior y exterior) garantiza la seguridad; la pipeta evita el ingreso de agua."},
+ {l:"Caja del medidor",k:"meter",o:["Caja de PVC MN127, precintable","Caja de chapa sin precinto","Caja de PVC MN128 (trifásica)","Gabinete de madera"],
+  w:"La caja monofásica es de PVC MN127 (290 × 180 × 180 mm). Solo el técnico de la distribuidora la interviene y la precinta."},
+ {l:"Canalización medidor → TPA",k:"box",o:["Corrugado de PVC ignífugo (blanco, azul o gris)","Corrugado naranja","Cable suelto al aire","Manguera de riego"],
+  w:"El corrugado naranja está prohibido porque no es ignífugo: puede prenderse fuego y propagar el incendio."},
+ {l:"Línea principal (LP)",k:"cable",o:["2 unipolares IRAM 247-3, misma sección que la LAD, hasta 2 m","2 cables IRAM 247-5 de 6 m","2 unipolares de 1,5 mm² de 2 m","Concéntrico de 10 m"],
+  w:"La LP va del medidor al ITM del TPA con unipolares IRAM 247-3 (neutro celeste), sección igual a la LAD (nunca menor a 4 mm²) y nunca más de 2 m."},
+ {l:"ITM del TPA",k:"itm",o:["ITM 2×25 A curva D, corta fase y neutro","ITM unipolar 1×25 A","Fusible manual de 25 A","ITM 2×63 A curva B"],
+  w:"En monofásica hasta 5 kW: ITM 2×25 A, preferentemente curva D, cortando todos los polos. No se permiten fusibles ni interruptores manuales."},
+ {l:"Gabinete del TPA",k:"box",o:["PVC clase II, IP 54 IK 9, desde 0,70 m de altura y 90 cm libres","Chapa IP 20 a 0,30 m del suelo","PVC IP 41 detrás de un mueble","Chapa pintada a 2 m de altura"],
+  w:"El TPA es de PVC clase II (doble aislación) con IP 54 IK 9, 90 cm libres, altura mínima de 0,70 m, señal de riesgo eléctrico y sin obstrucciones."}
+ ]},
+{id:"U2", icon:"🔌", name:"Acometida trifásica", kind:"build",
+ intro:"<b>Teoría primero.</b> La alimentación trifásica (más de 5 kW y hasta 10 kW, el máximo de un Cat 3) entrega 380 V entre fases y 220 V entre fase y neutro. Todo lo que corta o protege debe interrumpir <b>los 4 polos</b> (L1, L2, L3 y N). El ejemplo del curso: 24 A, 30 m de distancia entre TPA y TPU, cobre de 4 mm² enterrado.",
+ slots:[
+ {l:"Línea de alimentación (LAD)",k:"cable",o:["Concéntrico de 6 mm²","Concéntrico de 4 mm²","Unipolar de 2,5 mm²","Cable tipo taller de 6 mm²"],
+  w:"Para trifásica (más de 5 kW hasta 10 kW) la distribuidora usa 6 mm²; para monofásica, 4 mm²."},
+ {l:"Caja del medidor",k:"meter",o:["Caja de PVC MN128 (420 × 280 × 200 mm)","Caja de PVC MN127 (290 × 180 × 180 mm)","Caja de chapa","Caja de PVC sin precinto"],
+  w:"La caja trifásica es la MN128, de PVC, y la precinta la distribuidora."},
+ {l:"Caño de doble aislación",k:"box",o:["Doble aislación IRAM 2477 de 44,45 mm","Doble aislación de 38 mm","Corrugado naranja de 25 mm","Caño de chapa de 20 mm"],
+  w:"El trifásico necesita más sección para llevar más cables: 44,45 mm (en monofásico, 38 mm)."},
+ {l:"ITM del TPA",k:"itm",o:["ITM 4×25 A curva D","ITM 2×25 A curva D","ITM 3×63 A curva B","Tres fusibles de 25 A"],
+  w:"En trifásica el ITM del TPA es tetrapolar (corta L1, L2, L3 y N) y de 25 A como máximo en instalaciones nuevas."},
+ {l:"Cable del circuito seccional",k:"cable",o:["4 × 4 mm² IRAM 2178-1 (subterráneo)","4 × 1,5 mm² IRAM 247-3","4 × 4 mm² IRAM 247-5 (tipo taller)","2 × 4 mm² IRAM 2178-1"],
+  w:"Cumple I(B) = 24 A ≤ I(N) = 25 A ≤ I(Z) = 32 A, y la caída de tensión es de 1,39%, menor al 3%."},
+ {l:"ID de cabecera del TPU",k:"id",o:["ID 4×25 A · 30 mA","ID 2×25 A · 30 mA","ID 4×25 A · 300 mA","Sin ID porque ya hay ITM"],
+  w:"En trifásica el ID también es tetrapolar y de 30 mA, que es la sensibilidad para viviendas y locales comerciales."},
+ {l:"Distribución a los PIA",k:"bus",o:["Puente peine de 4 polos (N, L1, L2 y L3)","Puente peine de 2 polos","Guirnalda entre PIA","Empalmes con cinta aisladora"],
+  w:"Con más de 2 PIA corresponde puente peine, de 4 polos en trifásica. La guirnalda y los puentes cableados están prohibidos."}
+ ]},
+{id:"U3", icon:"🛡️", name:"TPU de la vivienda", kind:"build",
+ intro:"<b>Teoría primero.</b> Ejemplo del curso: vivienda con 3 circuitos de iluminación (IUG) y 3 de tomas (TUG). Potencia total 7800 VA; con 6 circuitos se aplica simultaneidad 0,6, o sea DPMS = 4680 VA y corriente de trabajo I(B) = 21,27 A. Eso lleva a ITM general 2×25 A y cable subterráneo 2×4 mm² IRAM 2178-1. Armá ahora el TPU, desde el cable que llega hasta la puesta a tierra.",
+ slots:[
+ {l:"Cable que llega desde el TPA",k:"cable",o:["2 × 4 mm² IRAM 2178-1 (subterráneo)","2 × 1,5 mm² IRAM 247-3 a la vista","2 × 4 mm² IRAM 247-5 (tipo taller)","Cuerda desnuda de 2,5 mm²"],
+  w:"El cable subterráneo IRAM 2178-1 tiene doble aislación y XLPE. Para I(B) = 21,27 A, 4 mm² (I(Z) = 32 A) cumple con un ITM de 25 A."},
+ {l:"Protección de personas (cabecera)",k:"id",o:["ID 2×25 A · 30 mA","ID 2×25 A · 300 mA","ID 4×25 A · 30 mA (tetrapolar)","Fusible de 25 A"],
+  w:"En una vivienda monofásica el ID es bipolar y de 30 mA. Es obligatorio como mínimo en la primera conexión del TPU."},
+ {l:"Distribución a los 6 PIA",k:"bus",o:["Puente peine bipolar (N y F)","Conexión en guirnalda entre PIA","Puente peine tetrapolar","Un cable por PIA unido con cinta"],
+  w:"Superando los 2 PIA se usa puente peine. En guirnalda un PIA de 5 A podría terminar soportando 20 A al sumar los de abajo."},
+ {l:"PIA de iluminación (IUG)",k:"itm",o:["PIA 2×10 A curva B","PIA 2×10 A curva D","PIA 1×10 A unipolar","PIA 2×32 A curva B"],
+  w:"Iluminación: curva B (3 a 5 veces la corriente nominal) y bipolar, para cortar fase y neutro. En el ejemplo del curso: B 2×10 A."},
+ {l:"PIA de tomacorrientes (TUG)",k:"itm",o:["PIA 2×16 A curva C","PIA 2×16 A curva B","PIA 2×40 A curva C","Fusible de 16 A"],
+  w:"Los tomas tienen picos de arranque: curva C (5 a 10 veces). En el ejemplo del curso: C 2×16 A. Cada TUG se calcula en 2200 VA (10 A)."},
+ {l:"Reserva del tablero",k:"box",o:["50% de módulos libres","Sin reserva","10% de reserva","Reserva solo si sobra lugar"],
+  w:"Se debe prever una reserva del 50% de los módulos instalados para futuras ampliaciones y mejor cableado."},
+ {l:"Cable de puesta a tierra",k:"pe",o:["IRAM 247-3 verde-amarillo, mínimo 4 mm²","Cable celeste de 1,5 mm²","Cuerda desnuda de 1 mm²","Cable rojo de 2,5 mm²"],
+  w:"El conductor de protección es bicolor verde-amarillo, de sección igual a la alimentación y nunca menor a 4 mm². El celeste es del neutro."},
+ {l:"Electrodo",k:"pe",o:["Jabalina IRAM 2309 de cobre ½″ × 1,5 m con cámara de inspección","Varilla de hierro de 50 cm sin cámara","Caño de PVC enterrado","Jabalina pegada a la del pilar"],
+  w:"En TT el electrodo del usuario es independiente de la tierra de servicio: jabalina IRAM 2309 de cobre, con tomacable y cámara de inspección."},
+ {l:"Verificación de la PAT",k:"meter",o:["Medir con telurímetro: máximo 40 Ω","Medir con tester: máximo 400 Ω","No hace falta medir","Medir con pinza amperométrica: máximo 4 Ω"],
+  w:"La resistencia de la puesta a tierra debe ser de 40 Ω como máximo y se mide con telurímetro. Si se supera, se agrega otra jabalina separada."}
+ ]},
+{id:"U4", icon:"🔎", name:"Cazá los errores", kind:"spot",
+ intro:"<b>Teoría primero.</b> Un buen instalador revisa antes de energizar: hay que verificar la aislación, que el ITM corte todos los polos, que no haya empalmes fuera de caja, ni guirnaldas, y que la PAT esté bien hecha. Ahora hacé de inspector: <b>tocá los ítems que están MAL</b> y después verificá.",
+ items:[
+ {t:"ITM del TPA unipolar que corta solo la fase",bad:true,w:"El ITM debe cortar todos los polos: 2 en monofásica y 4 en trifásica."},
+ {t:"LAD con cable concéntrico IRAM 63001 de 6 mm²",bad:false,w:"Correcto: concéntrico y de al menos 4 mm²."},
+ {t:"Caño corrugado naranja entre el medidor y el TPA",bad:true,w:"El naranja no es ignífugo: se prende fuego y propaga el incendio. Se usa blanco, azul o gris."},
+ {t:"TPU de PVC clase II con IP 41",bad:false,w:"Correcto: doble aislación e IP 41 como mínimo."},
+ {t:"ID de 300 mA en la cabecera del TPU de una vivienda",bad:true,w:"Para viviendas y locales comerciales el ID es de 30 mA. Los 100 a 300 mA son para fábricas."},
+ {t:"Tres PIA alimentados en guirnalda",bad:true,w:"La guirnalda está prohibida: se suman corrientes en el borne del primero y lo sobrecarga. Se usa puente peine."},
+ {t:"Puente peine para alimentar más de 2 PIA",bad:false,w:"Correcto: con más de 2 PIA corresponde puente peine."},
+ {t:"PIA curva C 2×16 A para tomacorrientes",bad:false,w:"Correcto: los tomas llevan curva C (picos de arranque)."},
+ {t:"Empalme de cables dentro de la cañería",bad:true,w:"Los empalmes se hacen solo en bocas o cajas de paso, nunca dentro de la canalización."},
+ {t:"Cable unipolar IRAM 247-3 a la vista, sin cañería",bad:true,w:"El IRAM 247-3 solo puede ir dentro de cañerías (salvo el verde-amarillo de tierra sobre bandejas)."},
+ {t:"Jabalina IRAM 2309 de cobre ½″ × 1,5 m con cámara de inspección",bad:false,w:"Correcto: es la jabalina mínima normalizada."},
+ {t:"TPU instalado dentro del baño",bad:true,w:"Los tableros y gabinetes no se instalan en el baño."},
+ {t:"Reserva libre del 50% de los módulos en el TPU",bad:false,w:"Correcto: se prevé 50% de reserva."},
+ {t:"Cable de PAT verde-amarillo de 4 mm²",bad:false,w:"Correcto: verde-amarillo y de sección no menor a 4 mm²."}
+ ]}
+];
+
+/* ---------- pantallas ---------- */
+let UTAB = "guia";
+let UG = null;
+
+function goUni(){ if(!db.current || !db.players[db.current]) return screenLogin(); UG = null; screenUni(); }
+
+function screenUni(){
+  setNav("uni");
+  const p = me();
+  app.innerHTML = `
+  <div class="top"><div class="brand">Unifilar</div></div>
+  <div class="seg">
+    <button class="${UTAB==="guia"?"on":""}" onclick="UTAB='guia';screenUni()">Guía</button>
+    <button class="${UTAB==="retos"?"on":""}" onclick="UTAB='retos';screenUni()">Armá el tablero</button>
+  </div>
+  ${UTAB==="guia" ? uniGuideHTML() : uniChallengesHTML(p)}`;
+  window.scrollTo(0,0);
+}
+
+function uniGuideHTML(){
+  let h = `<div class="theory"><b>¿Qué es un unifilar?</b> Es el esquema donde cada circuito se dibuja con <b>una sola línea</b> que representa todos sus conductores. El <b>topográfico</b>, en cambio, es un dibujo en vista real de los elementos. El unifilar se pega en la cara trasera de la tapa del TPU y es parte del proyecto que firma el instalador.<br><br>
+  Recorrido: <b>RDD → DPLA → LAD → medidor → LP → TPA → CS → TPU (ID + PIA) → PAT</b>. Tocá cada bloque para ver la explicación.</div>`;
+  UGUIDE.forEach(n=>{
+    if(n.g){ h += `<div class="grp">${n.g}</div>`; return; }
+    h += `<div class="un" onclick="this.classList.toggle('open')"><div class="rail">${usym(n.k)}</div>
+      <div class="bx"><h4>${n.t}</h4><div class="sp">${n.s}</div><div class="hint">Tocá para leer</div>
+      <div class="ud">${n.d}${n.pias?`<div class="pias">
+        <div><b>IUG 1–3</b>PIA B 2×10 A<br>3000 A</div><div><b>IUG</b>curva B<br>iluminación</div><div><b>TUG 1–3</b>PIA C 2×16 A<br>4500 A</div></div>`:""}</div></div></div>`;
+  });
+  h += `<p class="note2">Basado en el material del curso. Antes de ejecutar una instalación real, confirmá los valores con la reglamentación vigente (AEA 90364, resoluciones del ERSeP y requisitos de EPEC o tu cooperativa).</p>`;
+  return h;
+}
+
+function uniChallengesHTML(p){
+  return `<div class="theory">Armá el unifilar de cada instalación eligiendo los componentes correctos. Después de verificar, cada pieza te muestra por qué es la correcta. Se aprueba con ${PASS}% y suma puntos al ranking.</div>` +
+  UCH.map(c=>{
+    const lv = p.levels[c.id];
+    return `<button class="lv" onclick="startChallenge('${c.id}')"><div class="ico">${c.icon}</div>
+      <div class="t"><h3>Reto ${c.id.slice(1)} · ${c.name}</h3><p>${lv?`Mejor: ${lv.pct}% · ${lv.score} pts`:(c.kind==="build"?c.slots.length+" componentes para armar":c.items.length+" ítems para revisar")}</p></div>
+      <div class="stars">${starsHTML(lv?lv.stars:0)}</div></button>`;
+  }).join("");
+}
+
+function startChallenge(id){
+  const c = UCH.find(x=>x.id===id);
+  UG = {c, checked:false};
+  if(c.kind==="build"){ UG.opts = c.slots.map(s=>shuffle(s.o.map((t,i)=>({t, ok:i===0})))); UG.sel = c.slots.map(()=>-1); }
+  else { UG.sel = c.items.map(()=>false); }
+  setNav(null);
+  app.innerHTML = `
+  <div class="top"><div class="brand">${c.icon} ${c.name}</div></div>
+  <div class="theory">${c.intro}</div>
+  <button class="btn" onclick="renderChallenge()">Empezar</button>
+  <button class="btn ghost" onclick="UG=null;screenUni()">Volver</button>`;
+  window.scrollTo(0,0);
+}
+
+function renderChallenge(){
+  const c = UG.c;
+  const done = c.kind==="build" ? UG.sel.filter(x=>x>=0).length : null;
+  let body = "";
+  if(c.kind==="build"){
+    body = c.slots.map((s,i)=>{
+      const j = UG.sel[i], o = j>=0 ? UG.opts[i][j] : null;
+      const cls = UG.checked ? (o && o.ok ? "ok" : "bad") : "";
+      return `<div class="un" ${UG.checked?"":`onclick="openSlot(${i})"`}><div class="rail">${usym(s.k)}</div>
+        <div class="bx ${cls}"><div class="lab">${i+1}. ${s.l}</div>
+        <div class="pick ${o?"":"empty"}">${o?esc(o.t):"Tocá para elegir"}</div>
+        ${UG.checked?`<div class="why">${o&&o.ok?"✅ ":"❌ "}${o&&o.ok?"":`<b>Correcto:</b> ${esc(s.o[0])}<br>`}${esc(s.w)}</div>`:""}</div></div>`;
+    }).join("");
+  } else {
+    body = c.items.map((it,i)=>{
+      let cls = UG.sel[i] ? "sel" : "";
+      if(UG.checked){ const right = UG.sel[i]===it.bad; cls = right ? "ok" : "bad"; }
+      return `<button class="spot ${cls}" ${UG.checked?"":`onclick="toggleSpot(${i})"`}><span class="tick">${UG.checked?(UG.sel[i]===it.bad?"✓":"✕"):(UG.sel[i]?"!":"")}</span>
+        <span>${esc(it.t)}${UG.checked?`<small>${it.bad?"Estaba MAL. ":"Estaba bien. "}${esc(it.w)}</small>`:""}</span></button>`;
+    }).join("");
+  }
+  app.innerHTML = `
+  <div class="qhead"><span>${c.icon} Reto ${c.id.slice(1)} · ${c.name}</span><span>${c.kind==="build"?done+"/"+c.slots.length:""}</span></div>
+  <div class="bar"><div style="width:${c.kind==="build"?done/c.slots.length*100:0}%"></div></div>
+  ${c.kind==="spot"?`<p class="note2" style="margin:0 0 12px">Tocá los ítems que consideres incorrectos.</p>`:""}
+  <div id="chbody">${body}</div>
+  <div id="chres"></div>
+  ${UG.checked?"":`<button class="btn" onclick="verifyChallenge()">Verificar</button>`}
+  <button class="link" onclick="UG=null;screenUni()">Salir</button>`;
+  if(UG.checked) showResult();
+}
+
+function openSlot(i){
+  const s = UG.c.slots[i];
+  const sh = document.createElement("div");
+  sh.className = "sheet"; sh.id = "sheet";
+  sh.onclick = e => { if(e.target===sh) sh.remove(); };
+  sh.innerHTML = `<div><h3>${i+1}. ${s.l}</h3>${UG.opts[i].map((o,j)=>`<button class="opt" onclick="pickOpt(${i},${j})">${esc(o.t)}</button>`).join("")}</div>`;
+  document.body.appendChild(sh);
+}
+function pickOpt(i,j){
+  UG.sel[i] = j;
+  const sh = $("#sheet"); if(sh) sh.remove();
+  const y = window.scrollY; renderChallenge(); window.scrollTo(0,y);
+}
+function toggleSpot(i){
+  UG.sel[i] = !UG.sel[i];
+  const y = window.scrollY; renderChallenge(); window.scrollTo(0,y);
+}
+
+function verifyChallenge(){
+  const c = UG.c;
+  if(c.kind==="build" && UG.sel.some(x=>x<0)){ alert("Completá todos los componentes antes de verificar."); return; }
+  UG.checked = true;
+  const y = window.scrollY; renderChallenge(); window.scrollTo(0,y);
+  $("#chres").scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+function showResult(){
+  const c = UG.c, p = me();
+  const total_ = c.kind==="build" ? c.slots.length : c.items.length;
+  const right = c.kind==="build" ? UG.sel.filter((j,i)=>UG.opts[i][j].ok).length
+                                 : UG.sel.filter((v,i)=>v===c.items[i].bad).length;
+  const pct = Math.round(right/total_*100);
+  const stars = pct===100 ? 3 : pct>=85 ? 2 : pct>=PASS ? 1 : 0;
+  const score = right*10 + (right===total_ ? 20 : 0);
+  const prev = p.levels[c.id];
+  if(!UG.saved){
+    p.levels[c.id] = {score:Math.max(score, prev?prev.score:0), pct:Math.max(pct, prev?prev.pct:0), stars:Math.max(stars, prev?prev.stars:0)};
+    UG.got = awardBadges(p); UG.saved = true; save();
+  }
+  const pass = pct>=PASS, idx = UCH.findIndex(x=>x.id===c.id), nxt = UCH[idx+1];
+  $("#chres").innerHTML = `
+  <div class="fb ${pass?"ok":"bad"}" style="text-align:center">
+    <h4>${pass?"🎉 ¡Aprobado!":"💪 Casi"} · ${right} de ${total_} (${pct}%)</h4>
+    <div class="stars" style="font-size:26px">${starsHTML(stars)}</div>
+    <p style="margin-top:6px">+${score} pts${pass?"":` · necesitás ${PASS}% para aprobar`}</p>
+    ${UG.got&&UG.got.length?`<div class="newb">${UG.got.map(b=>`<div class="badge">${b.e} <b>${b.n}</b></div>`).join("")}</div>`:""}
+  </div>
+  <button class="btn" onclick="startChallenge('${c.id}')">Reintentar</button>
+  ${nxt?`<button class="btn ghost" onclick="startChallenge('${nxt.id}')">Siguiente reto</button>`:""}
+  <button class="btn ghost" onclick="UG=null;UTAB='retos';screenUni()">Volver a los retos</button>`;
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Electro Quiz · Administrador</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--card2:#1e222b;--line:#2a2f3a;--txt:#e8eaf0;--mut:#8b93a5;--acc:#f5b301;--ok:#2ecc71;--bad:#ff5d5d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,sans-serif;padding:16px;max-width:640px;margin:auto}
+h1{font-size:20px;margin:6px 0 14px}h2{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:22px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+input{width:100%;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;margin-bottom:8px}
+button,a.b{background:var(--acc);color:#1a1300;border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+button.g,a.g{background:var(--card2);color:var(--txt);border:1px solid var(--line);font-weight:500}button.r{background:transparent;color:var(--bad);border:1px solid var(--bad);font-weight:500}
+.code{font-size:34px;font-weight:800;letter-spacing:4px;color:var(--acc);text-align:center;margin:8px 0;font-family:ui-monospace,monospace}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}.s{font-size:12px;color:var(--mut)}
+.err{color:var(--bad);font-size:13px;margin:6px 0}.ok{color:var(--ok)}
+.act{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+</style></head><body>
+<h1>⚡ Electro Quiz · Administrador</h1>
+<div class="card" id="cfg">
+  <input id="api" placeholder="Dirección de la función (https://xxxx.supabase.co/functions/v1/api)">
+  <input id="key" type="password" placeholder="Tu clave de administrador" autocomplete="current-password">
+  <button onclick="entrar()">Entrar</button>
+  <div class="err" id="e1"></div>
+</div>
+<div id="panel" hidden>
+  <h2>Nuevo código de activación</h2>
+  <div class="card">
+    <input id="lab" placeholder="¿Para quién es? (solo lo ves vos)">
+    <button onclick="nuevo()">Generar código</button>
+    <div id="out"></div>
+  </div>
+  <h2>Alumnos <span class="s" id="cu"></span></h2><div id="users"></div>
+  <h2>Códigos recientes</h2><div id="codes"></div>
+  <p class="s" style="margin-top:20px"><a class="g b" href="#" onclick="salir();return false">Cerrar panel</a></p>
+</div>
+<script>
+const $=s=>document.getElementById(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let API=localStorage.getItem("eq_admin_api")||"",KEY=sessionStorage.getItem("eq_admin_key")||"";
+$("api").value=API;
+async function call(action,extra){
+  const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action,key:KEY,...extra})});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Error");return d;
+}
+async function entrar(){
+  API=$("api").value.trim();KEY=$("key").value;$("e1").textContent="";
+  try{await call("admin_list");localStorage.setItem("eq_admin_api",API);sessionStorage.setItem("eq_admin_key",KEY);$("cfg").hidden=true;$("panel").hidden=false;cargar();}
+  catch(e){$("e1").textContent=e.message==="Failed to fetch"?"No se pudo conectar. Revisá la dirección.":e.message}
+}
+function salir(){sessionStorage.removeItem("eq_admin_key");location.reload()}
+function appUrl(){return location.href.replace(/admin\.html.*$/,"")}
+function wa(code,name){
+  const t="Hola"+(name?" "+name:"")+"! Tu código de activación para Electro Quiz es: "+code+"\n\nSe usa una sola vez. Entrá a "+appUrl()+", tocá «Crear cuenta», escribí tu nombre y este código, y apoyá tu dedo en el sensor.";
+  return "https://wa.me/?text="+encodeURIComponent(t);
+}
+function mostrar(code,name){
+  $("out").innerHTML=`<div class="code">${esc(code)}</div><div class="act"><button onclick="navigator.clipboard.writeText('${esc(code)}');this.textContent='Copiado ✔'">Copiar</button><a class="b g" target="_blank" rel="noopener" href="${wa(code,name)}">Enviar por WhatsApp</a></div><p class="s">Guardalo ahora: por seguridad el sistema no vuelve a mostrar el código.</p>`;
+}
+async function nuevo(){
+  try{const lab=$("lab").value.trim();const r=await call("admin_create_code",{label:lab});mostrar(r.code,lab);$("lab").value="";cargar();}catch(e){alert(e.message)}
+}
+async function reiniciar(id,name){
+  if(!confirm("¿Reiniciar la cuenta de "+name+"? Su teléfono actual dejará de entrar y se genera un código nuevo. Conserva su progreso."))return;
+  try{const r=await call("admin_reset",{user_id:id});mostrar(r.code,name);scrollTo(0,0);cargar();}catch(e){alert(e.message)}
+}
+async function borrar(id,name){
+  if(!confirm("¿Eliminar a "+name+" y todo su progreso? No se puede deshacer."))return;
+  try{await call("admin_delete_user",{user_id:id});cargar();}catch(e){alert(e.message)}
+}
+const fd=d=>d?new Date(d).toLocaleString("es-AR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"—";
+async function cargar(){
+  const r=await call("admin_list");
+  $("cu").textContent="("+r.users.length+")";
+  $("users").innerHTML=r.users.map(u=>`<div class="card"><div class="row"><b>${esc(u.name)}</b><span class="s">${u.pts} pts · ${u.st}★ · ${u.done} aprobados</span></div>
+    <div class="s">Alta: ${fd(u.created_at)} · Último guardado: ${fd(u.updated_at)} · ${u.devices?u.devices+" dispositivo":"<span style='color:var(--acc)'>esperando código</span>"}</div>
+    <div class="act"><button class="g" onclick="reiniciar('${u.id}','${esc(u.name).replace(/'/g,"")}')">Reiniciar / cambio de teléfono</button><button class="r" onclick="borrar('${u.id}','${esc(u.name).replace(/'/g,"")}')">Eliminar</button></div></div>`).join("")||'<p class="s">Todavía no hay alumnos.</p>';
+  $("codes").innerHTML=r.codes.map(c=>{const st=c.used_at?'<span class="ok">usado '+fd(c.used_at)+'</span>':(new Date(c.expires_at)<new Date()?'vencido':'sin usar');
+    return `<div class="card row"><span>${esc(c.label||"(sin nombre)")}</span><span class="s">${st}</span></div>`}).join("")||'<p class="s">Sin códigos.</p>';
+}
+if(API&&KEY){$("key").value=KEY;entrar();}
+</script></body></html>
