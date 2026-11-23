@@ -1576,5 +1576,41 @@ function showResult(){
 }
 
 </script>
+<script>
+/* ---------- BOTÓN ATRÁS: vuelve a la pantalla anterior; solo desde Inicio sale de la app ---------- */
+(function(){
+  const NAMES = ["screenHome","screenMods","screenLevels","screenModule","screenProyecto","screenNormas","screenAsistente","screenRank","screenBadges","screenGuiaPDF","goUni"];
+  const NAV = []; let cur = -1, busy = false;
+  const same = (a,b) => a.n===b.n && JSON.stringify(a.a)===JSON.stringify(b.a);
+  function record(n, a){
+    if(busy) return;
+    const e = {n, a};
+    try{
+      if(cur>=0 && NAV[cur].n===n){ NAV[cur]=e; history.replaceState({i:cur},""); return; }
+      if(cur>=0 && same(NAV[cur],e)) return;
+      NAV.length = cur+1; NAV.push(e); cur = NAV.length-1;
+      if(cur===0) history.replaceState({i:0},""); else history.pushState({i:cur},"");
+    }catch(_){}
+  }
+  NAMES.forEach(n=>{
+    const f = window[n]; if(typeof f!=="function") return;
+    window[n] = function(){ const a=[].slice.call(arguments); const r=f.apply(this,a); record(n,a.map(x=>typeof x==="object"?undefined:x)); return r; };
+  });
+  // pantalla ya dibujada al abrir la app
+  if(document.querySelector(".hello h2, .hello") && sessionStorage.getItem("electro_sess")!==null || document.querySelector("#app .hello")){ NAV.push({n:"screenHome",a:[]}); cur=0; try{ history.replaceState({i:0},""); }catch(_){} }
+  window.addEventListener("popstate", ev=>{
+    const i = ev.state && typeof ev.state.i==="number" ? ev.state.i : null;
+    if(i===null || !NAV[i]) return;
+    // si se cerró la sesión (pantalla de ingreso), no volver a pantallas privadas
+    if(!document.getElementById("nav") || document.getElementById("nav").style.display==="none" && !/screenHome/.test(NAV[i].n)) { cur=i; }
+    cur = i; busy = true;
+    try{ const e=NAV[i]; window[e.n].apply(null, e.a); }catch(_){}
+    busy = false; window.scrollTo(0,0);
+  });
+  window.__navReset = function(){ NAV.length=0; cur=-1; };
+  ["screenLogin","screenLoginSrv"].forEach(n=>{ const f=window[n]; if(typeof f==="function") window[n]=function(){ window.__navReset(); return f.apply(this,arguments); }; });
+})();
+
+</script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE = "electro-quiz-v9";
+const CACHE = "electro-quiz-v10";
 const FILES = ["./", "./index.html", "./preguntas.js", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", e => {
