@@ -157,6 +157,24 @@ li.k.n{border-left-color:#c58bff}li.k.n .kt{color:#c58bff}
 .pdfbar a{margin-left:auto;font-size:13px}
 .pdfv{overflow-x:auto;border-radius:10px}
 .pdfv img{display:block;max-width:none;margin:0 0 10px;background:#fff;border-radius:6px}
+.msg{margin:0 0 12px}
+.msg.a{display:flex;gap:8px;align-items:flex-start}
+.msg.u{display:block;margin-left:auto;max-width:85%;width:fit-content;background:var(--acc);color:#1a1300;border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:15px;line-height:1.4;font-weight:500}
+.av{flex:none;width:30px;height:30px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center;font-size:15px}
+.bub{background:var(--card);border:1px solid var(--line);border-radius:4px 16px 16px 16px;padding:11px 13px;font-size:14px;line-height:1.55;min-width:0;max-width:calc(100% - 40px)}
+.bub p{margin:0 0 8px}.bub .steps{margin-bottom:8px}.bub .fm{background:var(--card2)}.bub .tw{margin:8px 0}
+.bub .rs-l li{padding:6px 0}
+.bub .mono{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--mut)}
+.src{color:var(--mut);font-size:11px;margin-left:6px}
+.calc{background:rgba(245,179,1,.08);border:1px solid var(--acc);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.calc h4{font-size:14px;margin-bottom:6px}
+#chat{padding-bottom:88px}
+.chatin{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));display:flex;gap:8px;max-width:560px;margin:0 auto;padding:8px 12px;background:var(--bg);border-top:1px solid var(--line)}
+.chatin input.in{margin:0;padding:12px 14px;font-size:16px;flex:1}
+.chatin .btn{width:54px;margin:0;padding:0;font-size:20px}
+.dots i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--mut);margin:0 2px;animation:bl 1s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,80%,100%{opacity:.25}40%{opacity:1}}
 </style>
 </head>
 <body>
@@ -168,6 +186,7 @@ li.k.n{border-left-color:#c58bff}li.k.n .kt{color:#c58bff}
   <button id="n-uni" onclick="goUni()"><span>📐</span>Unifilar</button>
   <button id="n-proj" onclick="goProj()"><span>📋</span>Proyecto</button>
   <button id="n-norm" onclick="goNormas()"><span>⚖️</span>Normas</button>
+  <button id="n-ia" onclick="goAsist()"><span>💬</span>Asistente</button>
 </div></nav>
 <script>window.CFG={API:"https://dkwtfdzwlhzjvjeahxcp.supabase.co/functions/v1/clever-processor"};/* Pegá acá la dirección de tu función de Supabase (ver LEEME). Si queda vacío, la app funciona sin cuentas. */</script>
 <script src="preguntas.js"></script>
@@ -536,6 +555,7 @@ function screenHome(){
   ${hubCard("📋","4 · Proyecto eléctrico","Paso a paso · monofásico y trifásico","goProj()")}
   ${hubCard("🏆","5 · Examen final",fin?`Mejor: ${fin.pct}% · ${fin.score} pts`:FINAL.desc,"startSession('final',0)",true)}
   <div class="sec">Para consultar</div>
+  ${hubCard("💬","Asistente del curso","Preguntá y te responde con tus resúmenes","goAsist()",true)}
   ${hubCard("⚖️","Normas y leyes AEA · IRAM · ERSeP","Lo que debe saber un Categoría III","goNormas()")}
   <p class="note">${ALL.length+Object.values(MODQ).reduce((a,x)=>a+x.length,0)} preguntas · tu progreso se guarda en este teléfono.</p>`;
   window.scrollTo(0,0);
@@ -963,6 +983,259 @@ function screenNormas(keep){
   <p class="note">Basado en el material del curso. Confirmá siempre con la reglamentación vigente del ERSeP, la AEA y tu distribuidora.</p>`}`;
   if(!keep) window.scrollTo(0,0);
 }
+
+/* ---------- ASISTENTE: responde con tus resúmenes, proyectos y normas ---------- */
+const STOP = new Set("a al algo ante como con contra cual cuales cuando cuanto cuantos cuanta de del desde donde el ella ellos en entre es esta estan este esto estos fue ha hay hasta la las le les lo los me mi mis muy ni no nos o para pero por porque que quien se sea ser si sin sobre son su sus te tiene tienen tu tus un una uno unas unos y ya e u puede pueden hacer hace hago debe deben necesito quiero explicame explica explicar decime dime dame sirve sirven usa usan usar mas menos cada tambien cual es son hay tengo tenes sabes saber significa significan quisiera podes podrias favor hola debo conocer todos todas existen existe tengo".split(" "));
+const SYN = {termomagnetica:["itm"],termomagnetico:["itm"],llave:["itm"],disyuntor:["id"],diferencial:["id"],jabalina:["tierra","pat"],pat:["tierra","jabalina"],cobre:["conductor"],conductor:["cable"],cable:["conductor"],cables:["conductor"],caida:["ct"],voltaje:["tension"],volt:["tension"],volts:["tension"],amper:["corriente"],amperes:["corriente"],amperaje:["corriente"],intensidad:["corriente"],monofasica:["monofasico"],trifasica:["trifasico"],sla:["superficie"],proyecto:["proyecto"],lampara:["iug"],luces:["iug"],iluminacion:["iug"],tomas:["tug"],tomacorriente:["tug"],tomacorrientes:["tug"],enchufe:["tug"],enchufes:["tug"],medidor:["kwh"],tablero:["tpu","tpa"],electricista:["categoria"],matricula:["categoria"],habilitacion:["categoria"]};
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+function stem(w){ if(w.length<=3) return w; w = w.replace(/(ciones|cion)$/,"cion"); if(w.length>5 && w.endsWith("es")) w = w.slice(0,-2); else if(w.endsWith("s")) w = w.slice(0,-1); if(w.length>5 && /[aoe]$/.test(w)) w = w.slice(0,-1); return w; }
+const toks = s => norm(s).split(" ").filter(w => w && !STOP.has(w) && (w.length>1 || /\d/.test(w))).map(stem);
+function qtoks(s){ const raw = norm(s).split(" ").filter(w=>w && !STOP.has(w) && (w.length>1||/\d/.test(w))); const out = raw.map(stem); raw.forEach(w => (SYN[w]||[]).forEach(x => out.push(stem(x)+"~"))); return out; }
+
+let KB = null;
+function buildKB(){
+  const docs = [];
+  const modName = id => { const m = MOD_ITEMS.find(x=>x.id===id); return m ? m.name : id; };
+  const add = d => { d.tk = toks(d.title+" "+d.title+" "+d.text); d.norm = norm(d.title+" "+d.text); docs.push(d); };
+  Object.keys(STUDYD).forEach(id => {
+    const st = STUDYD[id], mn = modName(id);
+    st.resumen.forEach(sec => sec.items.forEach(it => add({type:"item", mod:id, title:mn+" "+sec.t, sec:sec.t, text:it})));
+    (st.formulas||[]).forEach(f => add({type:"form", mod:id, title:mn+" "+f.n, text:[f.n,f.f,f.u,f.e].join(" "), f}));
+    (st.tablas||[]).forEach(t => add({type:"tabla", mod:id, title:mn+" "+t.t, text:t.cols.join(" ")+" "+t.rows.map(r=>r.join(" ")).join(" "), t}));
+    (st.claves||[]).forEach(c => add({type:"item", mod:id, title:mn+" para memorizar", sec:"Para memorizar", text:c}));
+  });
+  [["mono1","Proyecto 1"],["mono2","Proyecto 2"],["tri","Proyecto trifásico"]].forEach(([k,lab]) => {
+    const P = PD[k]; if(!P) return;
+    (P.tablas||[]).forEach(t => add({type:"tabla", proj:k, plabel:lab, title:lab+" "+t.t, text:t.cols.join(" ")+" "+t.rows.map(r=>r.join(" ")).join(" "), t}));
+    (P.pasos||[]).forEach(s => {
+      const body = [s.que].concat(s.como||[], s.norma||[], s.calculo||[], [s.resultado||""]).join(" ");
+      add({type:"paso", proj:k, plabel:lab, n:s.n, title:lab+" paso "+s.n+" "+s.t, text:body, s});
+    });
+  });
+  if(ND && ND.tabla_resumen){ const tr = ND.tabla_resumen; add({type:"tabla", src:"normas", title:"Normas AEA IRAM ERSeP resumen rápido que debe conocer un Categoría III", text:tr.cols.join(" ")+" "+tr.rows.map(r=>r.join(" ")).join(" "), t:{t:"Normas: resumen rápido", cols:tr.cols, rows:tr.rows}}); }
+  if(ND){ const c3 = ND.cat3||{}; [["puede","Un Categoría III puede"],["no_puede","Un Categoría III NO puede"],["obligaciones","Obligaciones del Categoría III"]].forEach(([k,lab]) => (c3[k]||[]).forEach(t => add({type:"cat", title:lab+" categoria 3 instalador habilitado", sec:lab, text:t})));
+    (ND.checklist||[]).forEach(t => add({type:"cat", title:"Lista de control del instalador normas", sec:"Lista de control", text:t})); }
+  if(ND) ND.grupos.forEach(g => g.items.forEach(it => add({type:"norma", title:it.n+" "+it.t, text:it.q+" "+it.c, it})));
+  const N = docs.length, df = {}; let tot = 0;
+  docs.forEach(d => { tot += d.tk.length; new Set(d.tk).forEach(w => df[w] = (df[w]||0)+1); });
+  KB = {docs, df, N, avg: tot/N};
+}
+function search(q, only){
+  if(!KB) buildKB();
+  const qt = qtoks(q), nq = norm(q), base = qt.filter(w=>!w.endsWith("~"));
+  const words = norm(q).split(" ").filter(w=>w && !STOP.has(w));
+  const k1 = 1.4, b = .75, res = [];
+  KB.docs.forEach(d => {
+    if(only && !only(d)) return;
+    const tf = {}; d.tk.forEach(w => tf[w] = (tf[w]||0)+1);
+    let sc = 0, hit = 0; const seen = new Set();
+    qt.forEach(w => {
+      const wt = w.endsWith("~") ? .45 : 1, t = w.replace("~","");
+      const f = tf[t]; if(!f) return;
+      const idf = Math.log(1 + (KB.N - (KB.df[t]||0) + .5)/((KB.df[t]||0) + .5));
+      sc += wt * idf * (f*(k1+1))/(f + k1*(1 - b + b*d.tk.length/KB.avg));
+      if(!w.endsWith("~") && !seen.has(t)){ seen.add(t); hit++; }
+    });
+    for(let i=0;i<words.length-1;i++) if(d.norm.includes(words[i]+" "+words[i+1])) sc += 1.2;
+    if(sc > 0) res.push({d, sc, hit});
+  });
+  res.sort((a,b) => b.sc - a.sc);
+  return {res, nbase: new Set(base).size};
+}
+
+/* ---- calculadoras con las fórmulas del curso ---- */
+const num = s => parseFloat(String(s).replace(",","."));
+const fmt = (x,d=2) => (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toString().replace(".",",");
+function tryCalc(q){
+  const t = q.toLowerCase();
+  const tri = /trif/.test(t);
+  if(/ca[ií]da/.test(t)){
+    const L = /(\d+(?:[.,]\d+)?)\s*(?:metros?|mts?|m)(?![a-z0-9²])/i.exec(q), I = /(\d+(?:[.,]\d+)?)\s*(?:amperes?|amp|a)(?![a-z])/i.exec(q), S = /(\d+(?:[.,]\d+)?)\s*(?:mm2|mm²|mm)/i.exec(q);
+    if(L && I && S){
+      const l = num(L[1]), i = num(I[1]), s = num(S[1]), rho = .017, V = tri ? 380 : 220;
+      const ct = (tri ? 1.73 : 2) * l * i * rho / s, pc = ct*100/V;
+      return {title:`Caída de tensión ${tri?"trifásica":"monofásica"}`, steps:[
+        `Fórmula del curso: Ct = (${tri?"1,73":"2"} × L × I × ρ) / S, con ρ del cobre = 0,017.`,
+        `Ct = (${tri?"1,73":"2"} × ${fmt(l)} × ${fmt(i)} × 0,017) / ${fmt(s)} = ${fmt(ct)} V`,
+        `Porcentaje: ${fmt(ct)} × 100 / ${V} = ${fmt(pc)} %`,
+        pc<=3 ? `✔ ${fmt(pc)} % es menor al 3 %: cumple para iluminación y también para motores (5 %).` : pc<=5 ? `⚠ ${fmt(pc)} % supera el 3 % (iluminación) pero está dentro del 5 % de motores.` : `✘ ${fmt(pc)} % supera el 5 %: hay que aumentar la sección del cable o acortar el recorrido.`]};
+    }
+  }
+  const P = /(\d+(?:[.,]\d+)?)\s*(kva|kw|va|w)\b/i.exec(q);
+  if(P && /corriente|amper|intensidad|calcul|cuanto|i\s*\(?b/.test(t) && !/ca[ií]da/.test(t)){
+    let s = num(P[1]); const u = P[2].toLowerCase(); if(u[0]==="k") s *= 1000;
+    const Vm = /(\d+(?:[.,]\d+)?)\s*v(?:olts?)?\b/i.exec(q.replace(P[0],"")); const V = Vm ? num(Vm[1]) : (tri ? 380 : 220);
+    const I = tri ? s/(V*1.73) : s/V;
+    return {title:`Corriente de trabajo I(B) ${tri?"trifásica":"monofásica"}`, steps:[
+      `Fórmula del curso: I(B) = ${tri?"S / (V × 1,73)":"S / V"}${/w$/i.test(u)?" (tomando la potencia como VA; con cos φ distinto de 1 usá S = P / cos φ)":""}.`,
+      `I(B) = ${fmt(s,0)} / ${tri?`(${V} × 1,73)`:V} = ${fmt(I)} A`,
+      `Después elegí el ITM/PIA y el cable verificando I(B) ≤ I(N) ≤ I(Z).`]};
+  }
+  const B = /(\d+)\s*bocas/i.exec(q);
+  if(B && /iug|iluminaci|luces|l[aá]mpar/.test(t)){
+    const n = parseInt(B[1]), S = n*60*2/3;
+    return {title:"Potencia de un circuito IUG", steps:[
+      `Fórmula del curso: S = bocas × 60 VA × 2/3 (simultaneidad).`,
+      `S = ${n} × 60 × 2/3 = ${fmt(S,1)} VA`, `I(B) = ${fmt(S,1)} / 220 = ${fmt(S/220)} A`]};
+  }
+  return null;
+}
+
+/* ---- armado de la respuesta ---- */
+const MODN = id => { const m = MOD_ITEMS.find(x=>x.id===id); return m ? m : {n:id, name:id, icon:"📚"}; };
+function liHTML(text, srcHTML){
+  text = text.replace(/\s*\(p\. [^)]*\)/g,"");
+  const m = /^(FÓRMULA|VALOR|REGLA|OJO|NORMA|CUENTA):\s*(.*)$/s.exec(text);
+  const cls = m ? {"FÓRMULA":"f","VALOR":"v","REGLA":"r","OJO":"o","NORMA":"n","CUENTA":"f"}[m[1]] : "";
+  return `<li class="${m?"k "+cls:""}">${m?`<span class="kt">${m[1]}</span>`:""}${esc(m?m[2]:text)}${srcHTML||""}</li>`;
+}
+function itemsOf(d){
+  if(d.type==="item") return [d.text];
+  if(d.type==="cat") return [d.sec+": "+d.text];
+  if(d.type==="paso"){ const s = d.s; return [d.plabel+" · paso "+s.n+": "+s.t+". "+s.que].concat((s.norma||[]).slice(0,2).map(x=>"NORMA: "+x), (s.calculo||[]).slice(0,2).map(x=>"CUENTA: "+x)); }
+  if(d.type==="norma") return [d.it.n+" ("+d.it.t+"): "+d.it.q, "REGLA: "+d.it.c];
+  return [];
+}
+function srcChip(d){
+  if(d.type==="tabla" && d.src==="normas") return `<button class="rc" onclick="NQ='';screenNormas()">⚖️ Normas · resumen rápido</button>`;
+  if(d.type==="tabla" && d.proj) return `<button class="rc" onclick="PTAB='${d.proj==="tri"?"tri":"mono"}';PSUB='${d.proj==="mono2"?"mono2":"mono1"}';screenProyecto()">📋 ${esc(d.plabel)} · tablas</button>`;
+  if(d.type==="item"||d.type==="form"||d.type==="tabla"){ const m = MODN(d.mod); return `<button class="rc" onclick="screenModule('${d.mod}','resumen')">${m.icon} Mód. ${m.n} · ${esc(m.name)}</button>`; }
+  if(d.type==="paso") return `<button class="rc" onclick="PTAB='${d.proj==="tri"?"tri":"mono"}';PSUB='${d.proj==="mono2"?"mono2":"mono1"}';screenProyecto()">📋 ${esc(d.plabel)} · paso ${esc(d.n)}</button>`;
+  if(d.type==="cat") return `<button class="rc" onclick="NQ='';screenNormas()">⚖️ ${esc(d.sec)} (Normas)</button>`;
+  return `<button class="rc" onclick="NQ='${esc(norm(d.it.n).slice(0,30))}';screenNormas()">⚖️ ${esc(d.it.n)}</button>`;
+}
+function compareParts(q){
+  const m = /(?:diferenc\w*|compar\w*|versus|vs\.?)\s+(?:entre\s+|de\s+)?(.+?)\s+(?:y|e|vs\.?|versus|con|contra)\s+(?:el\s+|la\s+|los\s+|las\s+)?(.+?)\s*[?.!]*$/i.exec(q);
+  return m ? [m[1].replace(/^(el|la|los|las)\s+/i,""), m[2]] : null;
+}
+function answer(q){
+  const t = q.trim();
+  if(/^(hola|buenas|buen dia|buenos dias|buenas tardes|hey)\W*$/i.test(t)) return {html:`<p>¡Hola! Preguntame lo que necesites del curso: fórmulas, valores, normas, pasos del proyecto o comparaciones (por ejemplo «diferencia entre ITM e ID»). También calculo corriente y caída de tensión si me das los datos.</p>`};
+  if(/^(gracias|muchas gracias|genial|perfecto|ok|dale)\W*$/i.test(t)) return {html:`<p>¡De nada! Si querés seguir, preguntame otro tema o abrí el módulo para repasar.</p>`};
+  let html = "", used = [];
+  const calc = tryCalc(t);
+  if(calc) html += `<div class="calc"><h4>🧮 ${esc(calc.title)}</h4><ol class="steps">${calc.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol></div>`;
+
+  const cmp = compareParts(t);
+  if(cmp){
+    const ok = d => d.type==="item"||d.type==="paso"||d.type==="norma"||d.type==="cat";
+    const clean = x => itemsOf(x.d)[0].replace(/\s*\(p\. [^)]*\)/g,"").replace(/^(FÓRMULA|VALOR|REGLA|NORMA|CUENTA):\s*/,"").slice(0,210);
+    const A = search(cmp[0], ok).res.filter(x=>x.hit>=1 && !/^OJO/.test(x.d.text||"")).slice(0,25), B = search(cmp[1], ok).res.filter(x=>x.hit>=1 && !/^OJO/.test(x.d.text||"")).slice(0,25);
+    const ta = new Set(toks(cmp[0])), tb = new Set(toks(cmp[1]));
+    const has = (d,set) => { const tk = new Set(d.tk); let n=0; set.forEach(w=>{ if(tk.has(w)) n++; }); return n===set.size; };
+    const seenT = new Set();
+    const excl = (R, mine, other) => R.filter(x => has(x.d,mine) && !has(x.d,other)).map(x=>({x,t:clean(x)})).filter(o => { const k=o.t.slice(0,60); if(seenT.has(k)) return false; seenT.add(k); return true; }).slice(0,4);
+    const both = KB.docs.filter(d=>d.type==="tabla" && has(d,ta) && has(d,tb)).sort((x,y)=>{ const tt = d => { const k = new Set(toks(d.t.t)); let n=0; [...ta,...tb].forEach(w=>{ if(k.has(w)) n++; }); return n; }; return (tt(y)-tt(x)) || (x.tk.length-y.tk.length); })[0];
+    if(both){ html += `<p>El curso tiene una tabla que compara justo esto:</p>` + tableHTML(both.t); used.push({d:both}); }
+    const a = both ? [] : excl(A,ta,tb), bb = both ? [] : excl(B,tb,ta);
+    const joint = A.concat(B).filter(x => has(x.d,ta) && has(x.d,tb)).map(x=>({x,t:clean(x)})).filter((o,i,arr)=>arr.findIndex(y=>y.t.slice(0,60)===o.t.slice(0,60))===i).slice(0,3);
+    if(a.length || bb.length){
+      const n = Math.max(a.length, bb.length), rows = [];
+      for(let i=0;i<n;i++) rows.push([a[i]?a[i].t:"—", bb[i]?bb[i].t:"—"]);
+      html += `<p>Esto dice el curso de cada uno:</p>` + tableHTML({t:`${cmp[0]}  vs  ${cmp[1]}`, cols:[cmp[0], cmp[1]], rows});
+      if(joint.length) html += `<p><b>Cómo se relacionan:</b></p><ul class="rs-l">${joint.map(o=>`<li>${esc(o.t)}</li>`).join("")}</ul>`;
+      used = used.concat(a.map(o=>o.x), bb.map(o=>o.x), joint.map(o=>o.x));
+    }
+  }
+
+  const nt = norm(t);
+  if(!calc && !cmp && /(paso a paso|pasos|como se arma|como se hace|armar)/.test(nt) && /proyecto/.test(nt)){
+    const k = /trif/.test(nt) ? "tri" : (/segundo|2/.test(nt) ? "mono2" : "mono1"), P = PD[k];
+    if(P){
+      const lab = k==="tri" ? "Proyecto trifásico (380 V)" : k==="mono2" ? "Segundo proyecto (monofásico, GE Medio)" : "Primer proyecto (monofásico, GE Mínimo)";
+      html += `<p><b>${lab}: los pasos en orden</b></p><ol class="steps">${P.pasos.map(x=>`<li><b>${esc(String(x.t).replace(/^Paso\s*\d+\s*[:.-]\s*/i,""))}.</b> ${esc((x.resultado||x.que).slice(0,170))}</li>`).join("")}</ol>
+      <div class="refs"><button class="rc" onclick="PTAB='${k==="tri"?"tri":"mono"}';PSUB='${k==="mono2"?"mono2":"mono1"}';screenProyecto()">📋 Abrir ${lab.split(" (")[0]} con todo el detalle</button>${k!=="tri"?`<button class="rc" onclick="PTAB='tri';screenProyecto()">⚡ Ver la variante trifásica</button>`:""}${k==="mono1"?`<button class="rc" onclick="PTAB='mono';PSUB='mono2';screenProyecto()">📋 Segundo proyecto</button>`:""}</div>`;
+      return {html, follow:["Variables del proyecto eléctrico","Cálculo del circuito seccional","Grado de electrificación"]};
+    }
+  }
+  if(!calc && !cmp && /\bnormas?\b|\breglamentaci/.test(nt) && /(conocer|cuales|que normas|resumen|principales|existen|aplican|rigen|hay)/.test(nt)){
+    const nd = KB.docs.find(d=>d.type==="tabla" && d.src==="normas");
+    if(nd){ return {html:`<p>Estas son las normas y reglamentaciones que el curso marca como base para un instalador Categoría III:</p>`+tableHTML(nd.t)+`<div class="refs"><button class="rc" onclick="NQ='';screenNormas()">⚖️ Abrir Normas con el detalle</button></div>`, follow:["Qué puede hacer un Categoría III","Qué es la IRAM 2010","Normas de puesta a tierra"]}; }
+  }
+  const {res, nbase} = search(t);
+  const top = res[0];
+  const enough = top && top.hit >= Math.max(1, Math.ceil(nbase*.5));
+  if(!enough && !calc && !html) return {html:`<p>No encontré eso en tus resúmenes, módulos de proyecto ni normas, y prefiero no inventar una respuesta.</p><p>Probá con otras palabras (por ejemplo el nombre del tema: «caída de tensión», «TPU», «Sla», «jabalina») o abrí directamente los módulos:</p><div class="refs"><button class="rc" onclick="goMods()">📚 Ver módulos</button><button class="rc" onclick="goNormas()">⚖️ Normas</button><button class="rc" onclick="goProj()">📋 Proyecto</button></div>`};
+  if(enough){
+    const nn = norm(t), askNo = /\bno (puede|pueden|esta|estan|debe)|prohibid|no permitid/.test(nn), askYes = !askNo && /\b(puede|pueden|permitid|habilitad|autorizad)/.test(nn);
+    const best = top.sc, good = res.filter(x => x.sc >= best*.35 && x.hit >= Math.max(1,Math.ceil(nbase*.5)) && !(x.d.type==="cat" && ((askYes && /NO puede/.test(x.d.sec)) || (askNo && !/NO puede/.test(x.d.sec)))));
+    const wantSteps = /paso|proyecto|como se arma|como se hace|armar/.test(norm(t));
+    const items = [], seen = new Set();
+    let pasos = good.filter(x=>x.d.type==="paso");
+    if(wantSteps && pasos.length){
+      const proj = pasos[0].d.proj; pasos = pasos.filter(x=>x.d.proj===proj).sort((a,b)=>a.d.n-b.d.n).slice(0,6);
+      html += `<p><b>${esc(pasos[0].d.plabel)}: pasos relacionados</b></p><ol class="steps">${pasos.map(x=>`<li><b>Paso ${esc(x.d.n)}: ${esc(String(x.d.s.t).replace(/^Paso\s*\d+\s*[:.-]\s*/i,""))}.</b> ${esc(x.d.s.que)}${(x.d.s.calculo||[]).slice(0,2).map(c=>`<br><span class="mono">${esc(c)}</span>`).join("")}</li>`).join("")}</ol>`;
+      used = used.concat(pasos);
+    }
+    if(!calc) good.filter(x=>x.d.type==="item"||x.d.type==="cat"||x.d.type==="norma"||(x.d.type==="paso"&&!wantSteps)).forEach(x => {
+      if(items.length>=6) return;
+      itemsOf(x.d).slice(0,2).forEach(s => { const k = s.slice(0,50); if(!seen.has(k) && !/^OJO/.test(s) && items.length<6){ seen.add(k); items.push({s, d:x.d}); } });
+    });
+    if(items.length){
+      const mods = [...new Set(items.filter(i=>i.d.mod).map(i=>MODN(i.d.mod).n))];
+      html += `<p>${calc?"Qué dice el curso sobre esto:":"Según tus resúmenes"}${mods.length&&!calc?` (${mods.slice(0,3).map(m=>"módulo "+m).join(", ")})`:""}:</p>
+      <ul class="rs-l">${items.map(i=>liHTML(i.s, i.d.mod?`<small class="src">Mód. ${MODN(i.d.mod).n}</small>`:"")).join("")}</ul>`;
+      used = used.concat(items.map(i=>({d:i.d})));
+    }
+    const forms = good.filter(x=>x.d.type==="form").slice(0, calc ? 1 : 2);
+    if(forms.length){
+      html += `<div class="sec" style="margin-top:12px">Fórmulas</div>` + forms.map(x=>{const f = x.d.f; return `<div class="fm"><h4>${esc(f.n)}</h4><div class="eq">${esc(f.f)}</div><p>${esc(f.u)}</p><p class="ex"><b>Ejemplo:</b> ${esc(f.e)}</p></div>`;}).join("");
+      used = used.concat(forms);
+    }
+    const tab = res.find(x=>x.d.type==="tabla" && x.hit>=Math.max(1,Math.ceil(nbase*.5)) && (x.sc >= best*.45 || /tabla|cuadro|valores|cuanto|tabla/.test(norm(t))));
+    if(tab && !cmp){ html += tableHTML(tab.d.t); used.push(tab); }
+    const ojos = KB.docs.filter(d=>d.type==="item" && /^OJO/.test(d.text)).map(d=>({d, ...(()=>{const w=toks(t); const tk=new Set(d.tk); return {n:w.filter(x=>tk.has(x)).length}})()})).filter(x=>x.n>=Math.max(2,Math.ceil(nbase*.6))).sort((a,b)=>b.n-a.n).slice(0,2);
+    if(ojos.length) html += `<div class="sec" style="margin-top:12px">Ojo con esto</div><ul class="rs-l">${ojos.map(o=>liHTML(o.d.text,`<small class="src">Mód. ${MODN(o.d.mod).n}</small>`)).join("")}</ul>`;
+  }
+  /* fuentes y seguimiento */
+  const chips = [], seenC = new Set();
+  used.forEach(u => { const d = u.d; if(!d) return; const key = d.type==="tabla"?"t"+(d.src||d.proj||d.mod)+d.t.t:d.type==="paso"?d.proj+d.n:d.type==="norma"?d.it.n:d.type==="cat"?"cat":d.mod; if(seenC.has(key)||chips.length>=4) return; seenC.add(key); chips.push(srcChip(d)); });
+  if(chips.length) html += `<div class="refs"><small class="src" style="display:block;margin-bottom:4px">Para estudiarlo en detalle:</small>${chips.join("")}</div>`;
+  const rel = []; const seenS = new Set();
+  res.slice(0,30).forEach(x => { if(x.d.type==="item" && x.d.sec && !seenS.has(x.d.sec) && rel.length<3 && !/memorizar|^[0-9 ]+$/.test(x.d.sec)){ seenS.add(x.d.sec); rel.push(x.d.sec); } });
+  return {html, follow: rel};
+}
+
+/* ---- pantalla de chat ---- */
+let CHAT = [];
+const SUGG = ["¿Cómo se calcula la caída de tensión?","Diferencia entre ITM e ID","Paso a paso del proyecto monofásico","¿Qué es la Sla y para qué sirve?","Corriente de 2200 VA a 220 V","¿Qué puede hacer un Categoría III?","¿Qué cable uso para un circuito de 4 mm²?"];
+function chatMsgHTML(m){
+  if(m.role==="u") return `<div class="msg u">${esc(m.t)}</div>`;
+  return `<div class="msg a"><div class="av">⚡</div><div class="bub">${m.html}${(m.follow&&m.follow.length)?`<div class="refs"><small class="src" style="display:block;margin-bottom:4px">Seguí preguntando:</small>${m.follow.map(f=>`<button class="rc" onclick="askIA(this.dataset.q)" data-q="Explicame: ${esc(f)}">❓ ${esc(f.length>38?f.slice(0,36)+"…":f)}</button>`).join("")}</div>`:""}</div></div>`;
+}
+function screenAsistente(){
+  if(needLogin()) return;
+  setNav("ia");
+  app.innerHTML = `
+  <div class="top"><div class="brand">Asistente</div><button class="chip" onclick="CHAT=[];screenAsistente()" style="cursor:pointer">🗑 Nueva</button></div>
+  <div id="chat">${CHAT.length ? CHAT.map(chatMsgHTML).join("") : `
+    <div class="msg a"><div class="av">⚡</div><div class="bub"><p><b>Hola, ${esc(db.current)}.</b> Soy tu asistente del curso. Respondo <b>solo con lo que está en tus resúmenes, proyectos y normas</b>: explico, muestro fórmulas y tablas, comparo conceptos y hago cuentas con los métodos del curso.</p><p>Probá con una de estas:</p>
+      <div class="refs">${SUGG.map(s=>`<button class="rc" onclick="askIA(this.dataset.q)" data-q="${esc(s)}">${esc(s)}</button>`).join("")}</div></div></div>`}</div>
+  <div class="chatin"><input id="qi" class="in" placeholder="Preguntá sobre el curso…" autocomplete="off" enterkeyhint="send"><button class="btn" id="qs" onclick="askIA()">➤</button></div>`;
+  $("#qi").addEventListener("keydown", e => { if(e.key==="Enter") askIA(); });
+  const last = document.querySelector("#chat .msg:last-child"); if(last) window.scrollTo(0, document.body.scrollHeight); else window.scrollTo(0,0);
+}
+function askIA(txt){
+  const inp = $("#qi"); const q = (txt || (inp ? inp.value : "")).trim();
+  if(!q) return;
+  if(!$("#chat")) { screenAsistente(); }
+  if($("#qi")) $("#qi").value = "";
+  CHAT.push({role:"u", t:q});
+  const box = $("#chat");
+  if(CHAT.length===1) box.innerHTML = "";
+  box.insertAdjacentHTML("beforeend", chatMsgHTML({role:"u", t:q}) + `<div class="msg a" id="typing"><div class="av">⚡</div><div class="bub"><span class="dots"><i></i><i></i><i></i></span></div></div>`);
+  window.scrollTo(0, document.body.scrollHeight);
+  setTimeout(() => {
+    let a; try { a = answer(q); } catch(e){ console.error(e); a = {html:"<p>Tuve un problema al buscar eso. Probá de otra forma.</p>"}; }
+    const m = {role:"a", html:a.html, follow:a.follow};
+    CHAT.push(m);
+    const ty = $("#typing"); if(ty) ty.remove();
+    box.insertAdjacentHTML("beforeend", chatMsgHTML(m));
+    const bubs = box.querySelectorAll(".msg.a"); const el = bubs[bubs.length-1];
+    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+  }, 450);
+}
+const goAsist = () => screenAsistente();
 
 
 /* ============ INICIO ============ */
